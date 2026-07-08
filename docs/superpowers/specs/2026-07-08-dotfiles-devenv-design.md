@@ -46,11 +46,12 @@ the end of the project. The repo keeps only a reference note of what was chosen
 ```
 dotfiles/
   herdr/config.toml          # multiplexer config
-  broot/conf.toml           # file tree config
+  broot/conf.toml            # file tree config
   micro/settings.json        # editor config
-  shell/bashrc               # sourced from ~/.bashrc
+  micro/bindings.json        # editor keybindings
+  shell/bashrc               # sourced from ~/.bashrc; puts bin/ on PATH
   bin/
-    install                  # create symlinks (idempotent, backs up existing)
+    setup                    # create symlinks (idempotent, backs up existing)
     dev                      # build the herdr layout preset
   docs/
     winterm.md               # manual Windows Terminal notes — reference only
@@ -63,17 +64,23 @@ live install during Phase 1 (e.g. broot uses `conf.toml`; micro uses
 
 ## Apply model — symlinks
 
-`bin/install` creates symlinks from the live config locations into the repo, so
+`bin/setup` creates symlinks from the live config locations into the repo, so
 that editing a repo file *is* the live change and git tracks it immediately.
 
-- `~/.config/herdr/config.toml`   → `dotfiles/herdr/config.toml`
-- `~/.config/broot/conf.toml`    → `dotfiles/broot/conf.toml`
-- `~/.config/micro/settings.json` → `dotfiles/micro/settings.json`
-- `~/.bashrc` is **not** symlinked. Instead `install` ensures a single line
+- `~/.config/herdr/config.toml`    → `dotfiles/herdr/config.toml`
+- `~/.config/broot/conf.toml`      → `dotfiles/broot/conf.toml`
+- `~/.config/micro/settings.json`  → `dotfiles/micro/settings.json`
+- `~/.config/micro/bindings.json`  → `dotfiles/micro/bindings.json`
+- `~/.bashrc` is **not** symlinked. Instead `setup` ensures a single line
   `source <repo>/shell/bashrc` is present in `~/.bashrc`, to avoid clobbering
-  WSL's default `.bashrc`.
+  WSL's default `.bashrc`. `shell/bashrc` prepends `<repo>/bin` to `PATH` so
+  `dev` (and future scripts) run as bare commands.
 
-Requirements for `install`:
+**Naming note:** the installer is `bin/setup`, not `bin/install`, because `bin`
+is on `PATH` and a file named `install` (or `link`) would shadow the coreutils
+commands of the same name. `setup` and `dev` have no such collision.
+
+Requirements for `setup`:
 
 - **Idempotent:** re-running produces the same result; it does not duplicate the
   `source` line or re-create existing correct symlinks.
@@ -131,8 +138,11 @@ Built in the user's stated order. This spec covers the whole repo; Phase 1 is
 planned and built first.
 
 1. **Phase 1 — blocks (manual setup of individual pieces):** capture the current
-   herdr / broot / micro / shell configs into the repo, write `bin/install`,
-   verify the symlinks resolve and the tools still start from them.
+   herdr / broot / micro / shell configs into the repo, write `bin/setup`,
+   verify the symlinks resolve and the tools still start from them. Note: broot
+   currently has both `conf.hjson` and `conf.toml` live; confirm broot honors
+   `conf.toml` (the tracked file) given the coexistence, and do not delete
+   `conf.hjson` automatically.
 2. **Phase 2 — layout (functional):** write and verify `bin/dev` against a live
    herdr session; confirm the ratios produce 70/30 and 40/60 and that broot
    launches in the bottom-right.
@@ -142,7 +152,7 @@ planned and built first.
 
 ## Verification approach
 
-- **Phase 1:** after `bin/install`, check each target is a symlink pointing into
+- **Phase 1:** after `bin/setup`, check each target is a symlink pointing into
   the repo (`ls -l`), and that herdr/broot/micro start without error reading the
   linked config. Confirm `~/.bashrc` sources the repo file exactly once.
 - **Phase 2:** run `bin/dev` in a live herdr session and read back
