@@ -1,0 +1,50 @@
+#!/usr/bin/env bash
+# Symlink live config locations to this repo. Idempotent and non-destructive:
+# existing real files are backed up to <name>.bak before being replaced.
+set -euo pipefail
+
+# Resolve repo root from this script's own location (bin/ -> repo root).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+REPO="$(cd "$SCRIPT_DIR/.." && pwd)"
+CONFIG="${XDG_CONFIG_HOME:-$HOME/.config}"
+
+# target (live location) | source (path inside the repo)
+links=(
+  "$CONFIG/herdr/config.toml|herdr/config.toml"
+  "$CONFIG/broot/conf.toml|broot/conf.toml"
+  "$CONFIG/micro/settings.json|micro/settings.json"
+  "$CONFIG/micro/bindings.json|micro/bindings.json"
+)
+
+link_one() {
+  local target="$1" src="$REPO/$2"
+  mkdir -p "$(dirname "$target")"
+  # Already the correct symlink: nothing to do.
+  if [[ -L "$target" && "$(readlink -f "$target")" == "$(readlink -f "$src")" ]]; then
+    echo "ok     $target"
+    return
+  fi
+  # Existing real file or a stale link: preserve it before replacing.
+  if [[ -e "$target" || -L "$target" ]]; then
+    mv "$target" "$target.bak"
+    echo "backup $target -> $target.bak"
+  fi
+  ln -s "$src" "$target"
+  echo "link   $target -> $src"
+}
+
+for pair in "${links[@]}"; do
+  link_one "${pair%%|*}" "${pair#*|}"
+done
+
+# Ensure ~/.bashrc sources the repo shell config exactly once.
+BASHRC="$HOME/.bashrc"
+SOURCE_LINE="source $REPO/shell/bashrc"
+if ! grep -qxF "$SOURCE_LINE" "$BASHRC" 2>/dev/null; then
+  printf '\n# dotfiles\n%s\n' "$SOURCE_LINE" >> "$BASHRC"
+  echo "bashrc added source line"
+else
+  echo "bashrc already sources repo"
+fi
+
+echo "done"
