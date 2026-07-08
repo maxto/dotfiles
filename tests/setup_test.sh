@@ -18,6 +18,9 @@ echo "# base bashrc" > "$HOME/.bashrc"
 
 bash "$REPO/bin/setup" >/dev/null
 
+check "bin/setup is executable" \
+  '[[ -x "$REPO/bin/setup" ]]'
+
 check "herdr config linked into repo" \
   '[[ -L "$XDG_CONFIG_HOME/herdr/config.toml" && "$(readlink -f "$XDG_CONFIG_HOME/herdr/config.toml")" == "$REPO/herdr/config.toml" ]]'
 
@@ -35,6 +38,9 @@ check "micro bindings linked into repo" \
 
 check "bashrc has the source line" \
   'grep -qxF "source $REPO/shell/bashrc" "$HOME/.bashrc"'
+
+check "existing bashrc content preserved" \
+  'grep -qxF "# base bashrc" "$HOME/.bashrc"'
 
 # Second run: must not duplicate the source line, must not re-backup.
 bash "$REPO/bin/setup" >/dev/null

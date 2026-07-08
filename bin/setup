@@ -42,6 +42,9 @@ done
 
 # Ensure ~/.bashrc sources the repo shell config exactly once.
 BASHRC="$HOME/.bashrc"
+# Assumes a stable repo path: the line embeds the absolute $REPO path, so moving
+# the repo leaves the old line dangling and appends a new one. Re-run from a
+# fixed location (or remove the old line) if you relocate the repo.
 SOURCE_LINE="source $REPO/shell/bashrc"
 if ! grep -qxF "$SOURCE_LINE" "$BASHRC" 2>/dev/null; then
   printf '\n# dotfiles\n%s\n' "$SOURCE_LINE" >> "$BASHRC"
