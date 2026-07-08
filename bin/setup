@@ -28,7 +28,7 @@ link_one() {
   # Never clobber an existing backup — fall back to a timestamped .bak name.
   if [[ -e "$target" || -L "$target" ]]; then
     local backup="$target.bak"
-    [[ -e "$backup" ]] && backup="$target.$(date +%s).bak"
+    [[ -e "$backup" || -L "$backup" ]] && backup="$target.$(date +%s).bak"
     mv "$target" "$backup"
     echo "backup $target -> $backup"
   fi

@@ -62,4 +62,17 @@ check "prior .bak preserved (not clobbered)" \
 check "broot relinked into repo after stale link" \
   '[[ -L "$STALE" && "$(readlink -f "$STALE")" == "$REPO/broot/conf.toml" ]]'
 
+# Non-destructive against a dangling-symlink backup: a .bak that is itself a
+# broken symlink must also survive (not be overwritten by the new backup).
+STALE2="$XDG_CONFIG_HOME/micro/settings.json"
+rm -f "$STALE2" "$STALE2.bak"
+ln -s /nonexistent-a "$STALE2.bak"   # prior backup is itself a dangling symlink
+ln -s /nonexistent-b "$STALE2"       # stale target -> triggers the backup branch
+bash "$REPO/bin/setup" >/dev/null
+
+check "dangling .bak not clobbered" \
+  '[[ "$(readlink "$STALE2.bak")" == "/nonexistent-a" ]]'
+check "micro settings relinked after stale link" \
+  '[[ -L "$STALE2" && "$(readlink -f "$STALE2")" == "$REPO/micro/settings.json" ]]'
+
 exit $fail
