@@ -18,14 +18,20 @@ echo "# base bashrc" > "$HOME/.bashrc"
 
 bash "$REPO/bin/setup" >/dev/null
 
-check "herdr config is a symlink into the repo" \
+check "herdr config linked into repo" \
   '[[ -L "$XDG_CONFIG_HOME/herdr/config.toml" && "$(readlink -f "$XDG_CONFIG_HOME/herdr/config.toml")" == "$REPO/herdr/config.toml" ]]'
 
 check "old real herdr config backed up with original content" \
   '[[ -f "$XDG_CONFIG_HOME/herdr/config.toml.bak" && "$(cat "$XDG_CONFIG_HOME/herdr/config.toml.bak")" == "OLD" ]]'
 
-check "micro bindings linked when target was absent" \
-  '[[ -L "$XDG_CONFIG_HOME/micro/bindings.json" ]]'
+check "broot config linked into repo" \
+  '[[ -L "$XDG_CONFIG_HOME/broot/conf.toml" && "$(readlink -f "$XDG_CONFIG_HOME/broot/conf.toml")" == "$REPO/broot/conf.toml" ]]'
+
+check "micro settings linked into repo" \
+  '[[ -L "$XDG_CONFIG_HOME/micro/settings.json" && "$(readlink -f "$XDG_CONFIG_HOME/micro/settings.json")" == "$REPO/micro/settings.json" ]]'
+
+check "micro bindings linked into repo" \
+  '[[ -L "$XDG_CONFIG_HOME/micro/bindings.json" && "$(readlink -f "$XDG_CONFIG_HOME/micro/bindings.json")" == "$REPO/micro/bindings.json" ]]'
 
 check "bashrc has the source line" \
   'grep -qxF "source $REPO/shell/bashrc" "$HOME/.bashrc"'
@@ -41,5 +47,19 @@ check "herdr config still a symlink after rerun" \
 
 check "no double backup created on rerun" \
   '[[ ! -e "$XDG_CONFIG_HOME/herdr/config.toml.bak.bak" ]]'
+
+# Non-destructive: a pre-existing .bak must never be clobbered.
+# Make broot's link stale (points nowhere) so the backup branch runs again,
+# and plant a prior backup that must survive.
+STALE="$XDG_CONFIG_HOME/broot/conf.toml"
+rm -f "$STALE"
+ln -s /nonexistent "$STALE"
+echo "PRIOR" > "$STALE.bak"
+bash "$REPO/bin/setup" >/dev/null
+
+check "prior .bak preserved (not clobbered)" \
+  '[[ "$(cat "$STALE.bak")" == "PRIOR" ]]'
+check "broot relinked into repo after stale link" \
+  '[[ -L "$STALE" && "$(readlink -f "$STALE")" == "$REPO/broot/conf.toml" ]]'
 
 exit $fail

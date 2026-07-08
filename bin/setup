@@ -25,9 +25,12 @@ link_one() {
     return
   fi
   # Existing real file or a stale link: preserve it before replacing.
+  # Never clobber an existing backup — fall back to a timestamped .bak name.
   if [[ -e "$target" || -L "$target" ]]; then
-    mv "$target" "$target.bak"
-    echo "backup $target -> $target.bak"
+    local backup="$target.bak"
+    [[ -e "$backup" ]] && backup="$target.$(date +%s).bak"
+    mv "$target" "$backup"
+    echo "backup $target -> $backup"
   fi
   ln -s "$src" "$target"
   echo "link   $target -> $src"
