@@ -1,0 +1,12 @@
+onboarding = false
+[theme]
+name = "gruvbox"
+auto_switch = false
+
+[ui]
+agent_panel_sort = "priority"
+
+[[keys.command]]              # open in a split beside your work
+key = "prefix+f"
+type = "shell"
+command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"

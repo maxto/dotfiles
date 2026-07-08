@@ -1,0 +1,5 @@
+[[verbs]]
+invocation = "edit"
+key = "ctrl-e"
+execution = "micro {file}"
+leave_broot = false

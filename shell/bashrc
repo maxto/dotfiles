@@ -1,0 +1,4 @@
+# dotfiles shell config — sourced from ~/.bashrc
+# Resolve the repo root relative to this file (shell/ -> repo root).
+DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+export PATH="$DOTFILES_DIR/bin:$PATH"

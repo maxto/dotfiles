@@ -1,0 +1,7 @@
+# herdr runtime artifacts
+*.sock
+*.log
+session.json
+
+# installer backups
+*.bak
