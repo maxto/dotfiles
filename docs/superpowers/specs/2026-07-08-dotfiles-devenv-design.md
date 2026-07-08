@@ -46,7 +46,7 @@ the end of the project. The repo keeps only a reference note of what was chosen
 ```
 dotfiles/
   herdr/config.toml          # multiplexer config
-  broot/conf.hjson           # file tree config
+  broot/conf.toml           # file tree config
   micro/settings.json        # editor config
   shell/bashrc               # sourced from ~/.bashrc
   bin/
@@ -58,7 +58,7 @@ dotfiles/
 ```
 
 One directory per tool "block". Exact config filenames are confirmed against the
-live install during Phase 1 (e.g. broot uses `conf.hjson`; micro uses
+live install during Phase 1 (e.g. broot uses `conf.toml`; micro uses
 `settings.json`).
 
 ## Apply model — symlinks
@@ -67,7 +67,7 @@ live install during Phase 1 (e.g. broot uses `conf.hjson`; micro uses
 that editing a repo file *is* the live change and git tracks it immediately.
 
 - `~/.config/herdr/config.toml`   → `dotfiles/herdr/config.toml`
-- `~/.config/broot/conf.hjson`    → `dotfiles/broot/conf.hjson`
+- `~/.config/broot/conf.toml`    → `dotfiles/broot/conf.toml`
 - `~/.config/micro/settings.json` → `dotfiles/micro/settings.json`
 - `~/.bashrc` is **not** symlinked. Instead `install` ensures a single line
   `source <repo>/shell/bashrc` is present in `~/.bashrc`, to avoid clobbering
