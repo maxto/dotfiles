@@ -10,3 +10,6 @@ agent_panel_sort = "priority"
 key = "prefix+f"
 type = "shell"
 command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"
+
+[experimental]
+pane_history = false
