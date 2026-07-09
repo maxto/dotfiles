@@ -92,9 +92,11 @@ Requirements for `setup`:
 ## `bin/dev` — layout preset
 
 herdr has **no declarative startup layout** in `config.toml`. Layout is built
-imperatively through herdr's socket API and then persisted by herdr in
-`session.json`. `bin/dev` therefore builds the preset on demand; herdr keeps it
-between attaches, and `dev` is re-run only to reset drift.
+imperatively through herdr's socket API (all subcommands emit JSON; parse with
+`jq`) and then persisted by herdr in `session.json`. `bin/dev` builds the preset
+on demand. It is **idempotent against the current tab**: it collapses the tab to a
+single pane, then rebuilds — so re-running always yields the same clean preset
+(this is the "reset" path).
 
 Target layout:
 
@@ -107,24 +109,30 @@ Target layout:
    left 70%        right 30%
 ```
 
-Build sequence, starting from a single pane:
+**Verified ratio semantics (spike, 2026-07-09):** `--ratio` is the fraction kept
+by the *original* pane; the new pane gets `1 − ratio`. Measured against a 54-col ×
+23-row area: `--direction right --ratio 0.70` → original 38 / new 16; `--direction
+down --ratio 0.40` → original 9 / new 14. So:
 
-1. Current pane becomes **left** (agent — a plain shell).
-2. `herdr pane split --direction right --ratio <r1>` → **right** column (~30%).
-3. `herdr pane split <right> --direction down --ratio <r2>` → **bottom-right**
-   (broot, ~60%); the remaining top-right is bash (~40%).
-4. `herdr pane run <bottom-right> broot`.
-5. Focus returns to the left pane. Optionally rename panes `agent` / `bash` /
-   `files`.
+Build sequence (`PANE_ID` defaults to the currently focused pane; an explicit
+pane argument is accepted so the layout can be built around a throwaway pane in
+tests without stealing focus):
+
+1. Resolve the **anchor** pane (becomes left/agent) and its tab via
+   `herdr pane current` / `herdr pane get`.
+2. Collapse the tab: `herdr pane close` every other pane in the same tab.
+3. `herdr pane split <anchor> --direction right --ratio 0.70 --no-focus` →
+   **right** column = 30%.
+4. `herdr pane split <right> --direction down --ratio 0.40 --no-focus` →
+   **bottom-right** = 60% (broot); top-right = 40% (bash).
+5. `herdr pane run <bottom-right> broot`.
+6. `herdr pane rename` the panes `agent` / `bash` / `files`.
+7. Focus the left/agent pane (`herdr pane focus --direction left`).
 
 The left and top-right panes stay plain bash shells. The user launches `claude`
 (or any agent) manually in the left pane — the preset shapes layout only, it is
-agent-agnostic.
-
-**Open item to verify during implementation (not guessed):** the exact semantics
-of `herdr pane split --ratio` (whether the ratio is the fraction given to the new
-pane or to the original). Confirm with `herdr pane list` / `herdr pane layout`
-after a split and set `<r1>`/`<r2>` so the result is 70/30 and 40/60.
+agent-agnostic. `bin/dev` requires `jq` and `herdr` and errors clearly if either
+is missing.
 
 ## Git / GitHub
 
