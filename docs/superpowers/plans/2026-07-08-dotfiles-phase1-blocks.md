@@ -62,7 +62,7 @@ leave_broot = false
 - [ ] **Step 3: Write `shell/bashrc`**
 
 This file is sourced from `~/.bashrc`. It resolves the repo root from its own
-location and prepends `bin/` to `PATH` so `dev` (Phase 2) and `setup` run as
+location and prepends `bin/` to `PATH` so `desk` (Phase 2) and `setup` run as
 bare commands.
 
 ```bash
@@ -101,7 +101,7 @@ One directory per tool block:
 - `broot/` — broot `conf.toml`
 - `micro/` — micro `settings.json`, `bindings.json`
 - `shell/` — `bashrc`, sourced from `~/.bashrc`
-- `bin/` — `setup` (symlink installer), `dev` (herdr layout preset)
+- `bin/` — `setup` (symlink installer), `desk` (herdr layout preset)
 
 ## Install
 
@@ -331,8 +331,8 @@ Expected: `ctrl-e` opens micro. If it does not, broot is reading `conf.hjson` fi
 
 - [ ] **Step 7: Load the shell entry in a fresh shell and confirm PATH**
 
-Run: `bash -lc 'source ~/.bashrc; command -v dev; echo "$PATH" | tr ":" "\n" | grep dotfiles/bin'`
-Expected: the `dotfiles/bin` entry appears on `PATH`. (`dev` itself is Phase 2, so `command -v dev` may be empty — the PATH entry is what matters here.)
+Run: `bash -lc 'source ~/.bashrc; command -v desk; echo "$PATH" | tr ":" "\n" | grep dotfiles/bin'`
+Expected: the `dotfiles/bin` entry appears on `PATH`. (`desk` itself is Phase 2, so `command -v desk` may be empty — the PATH entry is what matters here.)
 
 - [ ] **Step 8: Commit any drift captured during verification**
 
@@ -357,7 +357,7 @@ git status            # expect clean, or stage intentional config updates
 - `.gitignore` (`*.sock`,`*.log`,`session.json`,`*.bak`) → Task 1 Step 4.
 - micro `bindings.json` tracked in addition to `settings.json` → Task 1 + Task 2 links.
 - Phase 1 verification approach (symlink check, tools start, bashrc once) → Task 3.
-- Out of Phase 1: `bin/dev` (Phase 2), theming and `docs/winterm.md` (Phase 3), `git init`/GitHub push (repo already `git init`ed; remote push handled separately when the user is ready).
+- Out of Phase 1: `bin/desk` (Phase 2), theming and `docs/winterm.md` (Phase 3), `git init`/GitHub push (repo already `git init`ed; remote push handled separately when the user is ready).
 
 **Placeholder scan:** No TBD/TODO; all scripts and test code are complete and literal.
 

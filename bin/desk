@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-# Build the herdr "dev" layout preset in a tab:
+# Build the herdr "desk" layout preset in a tab:
 #   left 70% = agent (plain shell) | right 30%: top 40% = bash, bottom 60% = broot
 # Idempotent: collapses the target tab to a single pane, then rebuilds
-# (re-run = reset). Usage: dev [PANE_ID]  (default: the focused pane).
+# (re-run = reset). Usage: desk [PANE_ID]  (default: the focused pane).
 set -euo pipefail
 
-command -v jq    >/dev/null || { echo "dev: jq is required"    >&2; exit 1; }
-command -v herdr >/dev/null || { echo "dev: herdr is required" >&2; exit 1; }
+command -v jq    >/dev/null || { echo "desk: jq is required"    >&2; exit 1; }
+command -v herdr >/dev/null || { echo "desk: herdr is required" >&2; exit 1; }
 
 # 1. Anchor pane (becomes left/agent) and its tab.
 if [[ $# -ge 1 ]]; then
@@ -44,4 +44,4 @@ herdr pane rename "$bottom" files >/dev/null
 #    this makes the end state explicit).
 herdr pane focus --direction left --pane "$bottom" >/dev/null 2>&1 || true
 
-echo "dev: layout ready (agent | bash / files)"
+echo "desk: layout ready (agent | bash / files)"

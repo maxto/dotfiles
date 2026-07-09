@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Live integration test for bin/dev. Builds the preset around a throwaway
+# Live integration test for bin/desk. Builds the preset around a throwaway
 # --no-focus workspace (so it never steals your focus), asserts the geometry
 # (70/30 . 40/60), that broot runs bottom-right, and that the agent pane is
 # focused, then removes the workspace. Requires a running herdr server.
@@ -14,12 +14,12 @@ pct() { awk "BEGIN{printf \"%d\", ($1*100.0)/$2 + 0.5}"; }
 command -v jq    >/dev/null || { echo "jq required";    exit 2; }
 command -v herdr >/dev/null || { echo "herdr required"; exit 2; }
 
-WSID="$(herdr workspace create --no-focus --label devtest | jq -r '.result.workspace.workspace_id')"
+WSID="$(herdr workspace create --no-focus --label desktest | jq -r '.result.workspace.workspace_id')"
 trap 'herdr workspace close "$WSID" >/dev/null 2>&1' EXIT
 anchor="${WSID}:p1"
 
 # Build around the throwaway anchor (explicit pane arg = no focus theft).
-bash "$REPO/bin/dev" "$anchor" >/dev/null
+bash "$REPO/bin/desk" "$anchor" >/dev/null
 
 layout="$(herdr pane layout --pane "$anchor")"
 area_w="$(echo "$layout" | jq -r '.result.layout.area.width')"

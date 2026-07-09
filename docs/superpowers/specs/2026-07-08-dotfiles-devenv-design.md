@@ -74,11 +74,11 @@ that editing a repo file *is* the live change and git tracks it immediately.
 - `~/.bashrc` is **not** symlinked. Instead `setup` ensures a single line
   `source <repo>/shell/bashrc` is present in `~/.bashrc`, to avoid clobbering
   WSL's default `.bashrc`. `shell/bashrc` prepends `<repo>/bin` to `PATH` so
-  `dev` (and future scripts) run as bare commands.
+  `desk` (and future scripts) run as bare commands.
 
 **Naming note:** the installer is `bin/setup`, not `bin/install`, because `bin`
 is on `PATH` and a file named `install` (or `link`) would shadow the coreutils
-commands of the same name. `setup` and `dev` have no such collision.
+commands of the same name. `setup` and `desk` have no such collision.
 
 Requirements for `setup`:
 
@@ -89,11 +89,11 @@ Requirements for `setup`:
 - Resolves the repo path relative to its own location, so it works regardless of
   where the repo is cloned.
 
-## `bin/dev` — layout preset
+## `bin/desk` — layout preset
 
 herdr has **no declarative startup layout** in `config.toml`. Layout is built
 imperatively through herdr's socket API (all subcommands emit JSON; parse with
-`jq`) and then persisted by herdr in `session.json`. `bin/dev` builds the preset
+`jq`) and then persisted by herdr in `session.json`. `bin/desk` builds the preset
 on demand. It is **idempotent against the current tab**: it collapses the tab to a
 single pane, then rebuilds — so re-running always yields the same clean preset
 (this is the "reset" path).
@@ -131,7 +131,7 @@ tests without stealing focus):
 
 The left and top-right panes stay plain bash shells. The user launches `claude`
 (or any agent) manually in the left pane — the preset shapes layout only, it is
-agent-agnostic. `bin/dev` requires `jq` and `herdr` and errors clearly if either
+agent-agnostic. `bin/desk` requires `jq` and `herdr` and errors clearly if either
 is missing.
 
 ## Git / GitHub
@@ -151,7 +151,7 @@ planned and built first.
    currently has both `conf.hjson` and `conf.toml` live; confirm broot honors
    `conf.toml` (the tracked file) given the coexistence, and do not delete
    `conf.hjson` automatically.
-2. **Phase 2 — layout (functional):** write and verify `bin/dev` against a live
+2. **Phase 2 — layout (functional):** write and verify `bin/desk` against a live
    herdr session; confirm the ratios produce 70/30 and 40/60 and that broot
    launches in the bottom-right.
 3. **Phase 3 — aesthetics (appearance):** theme herdr (`config.toml` is already
@@ -163,6 +163,6 @@ planned and built first.
 - **Phase 1:** after `bin/setup`, check each target is a symlink pointing into
   the repo (`ls -l`), and that herdr/broot/micro start without error reading the
   linked config. Confirm `~/.bashrc` sources the repo file exactly once.
-- **Phase 2:** run `bin/dev` in a live herdr session and read back
+- **Phase 2:** run `bin/desk` in a live herdr session and read back
   `herdr pane list` to confirm three panes with the expected split ratios and
   broot running in the bottom-right.

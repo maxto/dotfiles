@@ -12,7 +12,7 @@ One directory per tool block:
 - `broot/` — broot `conf.toml`
 - `micro/` — micro `settings.json`, `bindings.json`
 - `shell/` — `bashrc`, sourced from `~/.bashrc`
-- `bin/` — `setup` (symlink installer), `dev` (herdr layout preset)
+- `bin/` — `setup` (symlink installer), `desk` (herdr layout preset)
 
 ## Install
 
@@ -28,7 +28,7 @@ existing real files are backed up to `<name>.bak`.
 
 Inside herdr, run:
 
-    dev
+    desk
 
 Collapses the current tab to a single pane and builds the preset:
 
@@ -39,7 +39,7 @@ Collapses the current tab to a single pane and builds the preset:
     +----------------+--------+
        left 70%        right 30%
 
-broot launches automatically in the bottom-right. Re-run `dev` any time to reset
+broot launches automatically in the bottom-right. Re-run `desk` any time to reset
 the layout. Launch your AI agent (e.g. `claude`) yourself in the left pane — the
 preset shapes the layout only, it is agent-agnostic.
 
