@@ -1,0 +1,47 @@
+#!/usr/bin/env bash
+# Build the herdr "dev" layout preset in a tab:
+#   left 70% = agent (plain shell) | right 30%: top 40% = bash, bottom 60% = broot
+# Idempotent: collapses the target tab to a single pane, then rebuilds
+# (re-run = reset). Usage: dev [PANE_ID]  (default: the focused pane).
+set -euo pipefail
+
+command -v jq    >/dev/null || { echo "dev: jq is required"    >&2; exit 1; }
+command -v herdr >/dev/null || { echo "dev: herdr is required" >&2; exit 1; }
+
+# 1. Anchor pane (becomes left/agent) and its tab.
+if [[ $# -ge 1 ]]; then
+  anchor="$1"
+else
+  anchor="$(herdr pane current | jq -r '.result.pane.pane_id')"
+fi
+info="$(herdr pane get "$anchor")"
+wsid="$(echo "$info" | jq -r '.result.pane.workspace_id')"
+tabid="$(echo "$info" | jq -r '.result.pane.tab_id')"
+
+# 2. Collapse the tab: close every pane in it except the anchor. The pane list is
+#    captured before any close, so closing during iteration is safe.
+herdr pane list --workspace "$wsid" \
+  | jq -r --arg t "$tabid" '.result.panes[] | select(.tab_id==$t) | .pane_id' \
+  | while read -r p; do
+      [[ -n "$p" && "$p" != "$anchor" ]] && herdr pane close "$p" || true
+    done
+
+# 3. Right split: anchor keeps 70%, new right pane = 30%.
+right="$(herdr pane split "$anchor" --direction right --ratio 0.70 --no-focus | jq -r '.result.pane.pane_id')"
+
+# 4. Down split of the right pane: top (bash) keeps 40%, new bottom (broot) = 60%.
+bottom="$(herdr pane split "$right" --direction down --ratio 0.40 --no-focus | jq -r '.result.pane.pane_id')"
+
+# 5. Launch broot in the bottom-right pane.
+herdr pane run "$bottom" broot >/dev/null
+
+# 6. Label the panes.
+herdr pane rename "$anchor" agent >/dev/null
+herdr pane rename "$right"  bash  >/dev/null
+herdr pane rename "$bottom" files >/dev/null
+
+# 7. Focus the agent (left) pane (the --no-focus splits already keep it focused;
+#    this makes the end state explicit).
+herdr pane focus --direction left --pane "$bottom" >/dev/null 2>&1 || true
+
+echo "dev: layout ready (agent | bash / files)"

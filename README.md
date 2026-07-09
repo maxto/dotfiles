@@ -24,6 +24,25 @@ Creates symlinks from `~/.config/*` into this repo and adds a single
 `source .../shell/bashrc` line to `~/.bashrc`. Idempotent and non-destructive:
 existing real files are backed up to `<name>.bak`.
 
+## Layout preset
+
+Inside herdr, run:
+
+    dev
+
+Collapses the current tab to a single pane and builds the preset:
+
+    +----------------+--------+
+    |                |  bash  |   top-right 40%
+    |  agent  (70%)  +--------+
+    |                |  broot |   bottom-right 60%
+    +----------------+--------+
+       left 70%        right 30%
+
+broot launches automatically in the bottom-right. Re-run `dev` any time to reset
+the layout. Launch your AI agent (e.g. `claude`) yourself in the left pane — the
+preset shapes the layout only, it is agent-agnostic.
+
 ## Conventions
 
 Code, config, filenames, comments and docs are in English. Short names, no
