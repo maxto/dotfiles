@@ -76,15 +76,22 @@ ok "agent pane ~70% width (got ${aw_pct}%)" '[[ "$aw_pct" -ge 66 && "$aw_pct" -l
 ok "agent pane spans full height" '[[ "$ah" -eq "$area_h" ]]'
 
 # The two non-anchor panes are the right column; find which runs broot.
+# broot registers as the foreground process ~1-2s after launch, so poll for it.
 right_ids="$(echo "$layout" | jq -r --arg p "$anchor" '.result.layout.panes[]|select(.pane_id!=$p)|.pane_id')"
 broot_id=""; bash_id=""
+for _ in $(seq 1 20); do
+  broot_id=""
+  for pid in $right_ids; do
+    if herdr pane process-info --pane "$pid" \
+         | jq -e '.result.process_info.foreground_processes[]?|select(.name=="broot")' >/dev/null; then
+      broot_id="$pid"
+    fi
+  done
+  [[ -n "$broot_id" ]] && break
+  sleep 0.5
+done
 for pid in $right_ids; do
-  if herdr pane process-info --pane "$pid" \
-       | jq -e '.result.process_info.foreground_processes[]?|select(.name=="broot")' >/dev/null; then
-    broot_id="$pid"
-  else
-    bash_id="$pid"
-  fi
+  [[ "$pid" != "$broot_id" ]] && bash_id="$pid"
 done
 ok "broot running in a right pane" '[[ -n "$broot_id" ]]'
 ok "bash shell in the other right pane" '[[ -n "$bash_id" ]]'
