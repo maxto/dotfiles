@@ -90,9 +90,13 @@ for _ in $(seq 1 20); do
   [[ -n "$broot_id" ]] && break
   sleep 0.5
 done
-for pid in $right_ids; do
-  [[ "$pid" != "$broot_id" ]] && bash_id="$pid"
-done
+# Only identify bash once broot is found, so a poll-timeout doesn't mislabel a
+# pane as bash by default.
+if [[ -n "$broot_id" ]]; then
+  for pid in $right_ids; do
+    [[ "$pid" != "$broot_id" ]] && bash_id="$pid"
+  done
+fi
 ok "broot running in a right pane" '[[ -n "$broot_id" ]]'
 ok "bash shell in the other right pane" '[[ -n "$bash_id" ]]'
 
