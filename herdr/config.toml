@@ -6,10 +6,11 @@ auto_switch = false
 [ui]
 agent_panel_sort = "priority"
 
-[[keys.command]]              # open in a split beside your work
+[[keys.command]]  # open in a split beside your work
 key = "prefix+f"
 type = "shell"
 command = "herdr plugin action invoke open-file-viewer --plugin herdr-file-viewer"
 
+show_agent_labels_on_pane_borders = false
 [experimental]
 pane_history = false

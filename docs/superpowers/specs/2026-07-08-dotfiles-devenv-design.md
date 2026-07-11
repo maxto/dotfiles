@@ -39,7 +39,7 @@ symlink installer, and the layout preset script.
 **Out of scope:** Windows Terminal appearance (font, colors, title) lives in the
 Windows-side `settings.json`, not WSL2. Those are manual choices made by hand at
 the end of the project. The repo keeps only a reference note of what was chosen
-(`docs/winterm.md`); it does not apply anything on the Windows side.
+(`docs/win-term-setup.md`); it does not apply anything on the Windows side.
 
 ## Repo structure
 
@@ -54,7 +54,7 @@ dotfiles/
     setup                    # create symlinks (idempotent, backs up existing)
     dev                      # build the herdr layout preset
   docs/
-    winterm.md               # manual Windows Terminal notes — reference only
+    win-term-setup.md          # manual Windows Terminal + PowerShell 7 setup guide
   README.md
 ```
 
@@ -156,7 +156,7 @@ planned and built first.
    launches in the bottom-right.
 3. **Phase 3 — aesthetics (appearance):** theme herdr (`config.toml` is already
    `gruvbox`), broot and micro colors, and the manual Windows Terminal pass
-   documented in `docs/winterm.md`.
+   documented in `docs/win-term-setup.md`.
 
 ## Verification approach
 

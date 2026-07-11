@@ -48,7 +48,15 @@ preset shapes the layout only, it is agent-agnostic.
 Code, config, filenames, comments and docs are in English. Short names, no
 unnecessary complexity.
 
+## Windows Terminal + PowerShell 7
+
+The Windows side (terminal appearance, font, PowerShell 7 prompt) lives on
+Windows, not in this repo, so it is set up by hand. See
+[`docs/win-term-setup.md`](docs/win-term-setup.md) for step-by-step instructions
+(PowerShell 7, Hack Nerd Font, the curated Windows Terminal `settings.json`, and
+Oh My Posh + Terminal-Icons).
+
 ## Scope
 
-WSL2 side only. Windows Terminal appearance (font, colors, title) is configured
-by hand in the Windows-side `settings.json` and is not managed here.
+The repo manages the **WSL2 side** (configs + scripts). Windows Terminal and the
+PowerShell 7 prompt are documented but applied by hand — see above.
