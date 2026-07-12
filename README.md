@@ -11,7 +11,9 @@ One directory per tool block:
 - `herdr/` — herdr `config.toml`
 - `broot/` — broot `conf.toml`
 - `micro/` — micro `settings.json`, `bindings.json`
-- `shell/` — `bashrc`, sourced from `~/.bashrc`
+- `oh-my-posh/` — `probua.minimal.omp.json` prompt theme
+- `eza/` — `theme.yml` (colors for the `ls`/`ll`/`la`/`tree` aliases)
+- `shell/` — `bashrc`, sourced from `~/.bashrc` (prompt init + eza aliases)
 - `bin/` — `setup` (symlink installer), `desk` (herdr layout preset)
 
 ## Install

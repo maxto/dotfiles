@@ -2,3 +2,18 @@
 # Resolve the repo root relative to this file (shell/ -> repo root).
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="$DOTFILES_DIR/bin:$PATH"
+
+# Oh My Posh prompt (config symlinked into place by bin/setup).
+# Needs the oh-my-posh binary on PATH and a Nerd Font in the terminal —
+# see docs/win-term-setup.md.
+if command -v oh-my-posh >/dev/null 2>&1; then
+  eval "$(oh-my-posh init bash --config "${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/probua.minimal.omp.json")"
+fi
+
+# eza — modern ls (theme symlinked into place by bin/setup).
+if command -v eza >/dev/null 2>&1; then
+  alias ls='eza --icons --group-directories-first'
+  alias ll='eza -lah --icons --group-directories-first'
+  alias la='eza -a --icons --group-directories-first'
+  alias tree='eza --tree --icons --group-directories-first'
+fi

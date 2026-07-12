@@ -14,6 +14,8 @@ links=(
   "$CONFIG/broot/conf.toml|broot/conf.toml"
   "$CONFIG/micro/settings.json|micro/settings.json"
   "$CONFIG/micro/bindings.json|micro/bindings.json"
+  "$CONFIG/oh-my-posh/probua.minimal.omp.json|oh-my-posh/probua.minimal.omp.json"
+  "$CONFIG/eza/theme.yml|eza/theme.yml"
 )
 
 link_one() {

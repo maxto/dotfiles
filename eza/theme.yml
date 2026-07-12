@@ -1,0 +1,221 @@
+colourful: true
+
+filekinds:
+  directory:
+    foreground: White
+  symlink:
+    foreground: "#7373FF"
+  executable:
+    foreground: "#00FA9A"
+
+filenames:
+  ".git":
+    filename:
+      foreground: "#FF4500"
+  ".github":
+    filename:
+      foreground: "#C0C0C0"
+  ".config":
+    filename:
+      foreground: "#87CEAF"
+  ".cache":
+    filename:
+      foreground: "#87ECAF"
+  ".vscode":
+    filename:
+      foreground: "#87CEFA"
+  ".vscode-insiders":
+    filename:
+      foreground: "#24BFA5"
+  ".aws":
+    filename:
+      foreground: "#EC912D"
+  ".azure":
+    filename:
+      foreground: "#00BFFF"
+  ".kube":
+    filename:
+      foreground: "#326DE6"
+  ".docker":
+    filename:
+      foreground: "#2391E6"
+  ".terraform":
+    filename:
+      foreground: "#948EEC"
+  "node_modules":
+    filename:
+      foreground: "#6B8E23"
+  "projects":
+    filename:
+      foreground: "#00FF7F"
+  "src":
+    filename:
+      foreground: "#00FF7F"
+  "development":
+    filename:
+      foreground: "#00FF7F"
+  "docs":
+    filename:
+      foreground: "#00BFFF"
+  "documents":
+    filename:
+      foreground: "#00BFFF"
+  "desktop":
+    filename:
+      foreground: "#00FBFF"
+  "downloads":
+    filename:
+      foreground: "#D3D3D3"
+  "images":
+    filename:
+      foreground: "#9ACD32"
+  "pictures":
+    filename:
+      foreground: "#9ACD32"
+  "photos":
+    filename:
+      foreground: "#9ACD32"
+  "music":
+    filename:
+      foreground: "#DB7093"
+  "videos":
+    filename:
+      foreground: "#FFA500"
+  "bin":
+    filename:
+      foreground: "#00FFF7"
+  "README":
+    filename:
+      foreground: "#00FFFF"
+  "README.md":
+    filename:
+      foreground: "#00FFFF"
+  ".gitignore":
+    filename:
+      foreground: "#FF4500"
+  ".gitconfig":
+    filename:
+      foreground: "#FF4500"
+  "package.json":
+    filename:
+      foreground: "#6B8E23"
+  "Dockerfile":
+    filename:
+      foreground: "#4682B4"
+  "docker-compose.yml":
+    filename:
+      foreground: "#4682B4"
+  "docker-compose.yaml":
+    filename:
+      foreground: "#4682B4"
+
+extensions:
+  "sh":
+    filename:
+      foreground: "#FF4500"
+  "py":
+    filename:
+      foreground: "#4B8BBE"
+  "ipynb":
+    filename:
+      foreground: "#4B8BBE"
+  "js":
+    filename:
+      foreground: "#F0E68C"
+  "mjs":
+    filename:
+      foreground: "#F0E68C"
+  "ts":
+    filename:
+      foreground: "#F0E68C"
+  "jsx":
+    filename:
+      foreground: "#20B2AA"
+  "tsx":
+    filename:
+      foreground: "#20B2AA"
+  "json":
+    filename:
+      foreground: "#FFD700"
+  "yml":
+    filename:
+      foreground: "#FF6347"
+  "yaml":
+    filename:
+      foreground: "#FF6347"
+  "toml":
+    filename:
+      foreground: "#6495ED"
+  "md":
+    filename:
+      foreground: "#00BFFF"
+  "txt":
+    filename:
+      foreground: "#00CED1"
+  "html":
+    filename:
+      foreground: "#CD5C5C"
+  "css":
+    filename:
+      foreground: "#87CEFA"
+  "scss":
+    filename:
+      foreground: "#FF00FF"
+  "go":
+    filename:
+      foreground: "#20B2AA"
+  "rs":
+    filename:
+      foreground: "#FF4500"
+  "java":
+    filename:
+      foreground: "#F89820"
+  "c":
+    filename:
+      foreground: "#A9A9A9"
+  "cpp":
+    filename:
+      foreground: "#A9A9A9"
+  "cs":
+    filename:
+      foreground: "#7B68EE"
+  "php":
+    filename:
+      foreground: "#6A5ACD"
+  "sql":
+    filename:
+      foreground: "#FFD700"
+  "pdf":
+    filename:
+      foreground: "#CD5C5C"
+  "csv":
+    filename:
+      foreground: "#9ACD32"
+  "zip":
+    filename:
+      foreground: "#DAA520"
+  "tar":
+    filename:
+      foreground: "#DAA520"
+  "gz":
+    filename:
+      foreground: "#DAA520"
+  "png":
+    filename:
+      foreground: "#20B2AA"
+  "jpg":
+    filename:
+      foreground: "#20B2AA"
+  "jpeg":
+    filename:
+      foreground: "#20B2AA"
+  "svg":
+    filename:
+      foreground: "#F4A460"
+  "mp3":
+    filename:
+      foreground: "#DB7093"
+  "mp4":
+    filename:
+      foreground: "#FFA500"
+
