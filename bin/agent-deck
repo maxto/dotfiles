@@ -1,16 +1,23 @@
 #!/usr/bin/env bash
-# Launch the "agent-deck" 3-pane layout, anchored to the current dir.
+# agent-deck — launch the 3-pane "deck" layout and manage its herdr sessions.
 #
-# Run from a project folder:
+# Layout (all panes anchored to the launch dir):
 #   left 60% = agent (plain shell) | right 40%: top 40% = bash, bottom 60% = files (br)
-# All three panes open in $PWD, so agent, bash, and the broot tree see only
-# that folder.
 #
-# Context-aware:
-#   - Outside herdr: creates a fresh herdr workspace and attaches the terminal.
-#   - Inside herdr (HERDR_ENV=1): turns the CURRENT empty tab into the deck.
-#     The pane you run it in becomes the "agent" pane; bash + files are split off.
-# Usage: agent-deck   (no arguments)
+# Usage:
+#   agent-deck [name]            Launch the deck in a new session.
+#   agent-deck session list      Show herdr sessions and the workspaces they hold.
+#   agent-deck session open <name>      Attach this terminal to an existing session.
+#   agent-deck session kill <name>...   Stop and remove one or more sessions.
+#
+# Launch behavior is context-aware:
+#   - Outside herdr: creates a persistent, independent herdr session named
+#     "<name>-<pid>" (name defaults to the folder basename), builds the deck
+#     inside it, and attaches the terminal. The session survives closing the
+#     terminal — reattach with `herdr --session <name>-<pid>`, or stop it with
+#     `agent-deck session kill`.
+#   - Inside herdr (HERDR_ENV=1): turns the CURRENT empty tab into the deck
+#     (the pane you run it in becomes "agent"), within the current session.
 set -euo pipefail
 
 command -v jq    >/dev/null || { echo "agent-deck: jq is required"    >&2; exit 1; }
@@ -36,8 +43,62 @@ build_deck() {
   herdr pane rename "$bottom" files >/dev/null
 }
 
+# session_socket <name>: print the socket path of a running session, else nothing.
+session_socket() {
+  herdr session list --json \
+    | jq -r --arg n "$1" '.sessions[] | select(.name == $n and .running == true) | .socket_path'
+}
+
+# cmd_session_list: table of every session and the workspaces it currently holds.
+cmd_session_list() {
+  printf '%-24s %-8s %s\n' SESSION RUNNING WORKSPACES
+  herdr session list --json \
+    | jq -r '.sessions[] | [.name, (.running | tostring), .socket_path] | @tsv' \
+    | while IFS=$'\t' read -r name running sock; do
+        ws=""
+        if [[ "$running" == "true" && -S "$sock" ]]; then
+          ws="$(HERDR_SOCKET_PATH="$sock" herdr workspace list 2>/dev/null \
+                | jq -r '[.result.workspaces[].label] | join(", ")')"
+        fi
+        printf '%-24s %-8s %s\n' "$name" "$running" "$ws"
+      done
+}
+
+# cmd_session_open <name>: attach this terminal to an existing session. Refuses
+# an unknown name so a typo doesn't silently spawn a new empty session.
+cmd_session_open() {
+  local name="${1:-}"
+  [[ -n "$name" ]] || { echo "agent-deck: 'session open' richiede un nome" >&2; exit 1; }
+  [[ "${HERDR_ENV:-}" != "1" ]] || { echo "agent-deck: sei già dentro herdr; lancia 'session open' da una shell normale" >&2; exit 1; }
+  local exists
+  exists="$(herdr session list --json | jq -r --arg n "$name" '.sessions[] | select(.name == $n) | .name')"
+  [[ -n "$exists" ]] || { echo "agent-deck: nessuna sessione '$name' (vedi: agent-deck session list)" >&2; exit 1; }
+  exec herdr --session "$name"
+}
+
+# cmd_session_kill <name>...: stop and remove the given sessions entirely, so
+# they no longer linger in `session list` as stopped.
+cmd_session_kill() {
+  [[ $# -gt 0 ]] || { echo "agent-deck: 'session kill' richiede almeno un nome" >&2; exit 1; }
+  for name in "$@"; do
+    herdr session stop "$name" >/dev/null 2>&1 || true
+    herdr session delete "$name"
+  done
+}
+
+# --- Subcommand dispatch -----------------------------------------------------
+if [[ "${1:-}" == "session" ]]; then
+  case "${2:-}" in
+    list) cmd_session_list ;;
+    open) cmd_session_open "${3:-}" ;;
+    kill) shift 2; cmd_session_kill "$@" ;;
+    *)    echo "usage: agent-deck session {list | open <name> | kill <name>...}" >&2; exit 1 ;;
+  esac
+  exit 0
+fi
+
 dir="$PWD"
-label="$(basename "$dir")"
+label="${1:-$(basename "$dir")}"
 
 # --- Inside herdr: build the deck in the current tab -------------------------
 if [[ "${HERDR_ENV:-}" == "1" ]]; then
@@ -55,31 +116,30 @@ if [[ "${HERDR_ENV:-}" == "1" ]]; then
   exit 0
 fi
 
-# --- Outside herdr: create a fresh workspace and attach ----------------------
-# Ensure the herdr server is running. Normally it is (persistent session);
-# on a cold boot start it headless and wait for the socket to answer.
-if ! herdr status server >/dev/null 2>&1; then
-  herdr server >/dev/null 2>&1 &
-  for _ in $(seq 1 50); do
-    herdr status server >/dev/null 2>&1 && break
-    sleep 0.1
-  done
-  herdr status server >/dev/null 2>&1 || { echo "agent-deck: herdr server did not start" >&2; exit 1; }
-fi
+# --- Outside herdr: create a persistent, independent named session -----------
+# Name is "<label>-<pid>": the label stays human-readable, the pid guarantees
+# uniqueness so two terminals never share a session (even in the same folder).
+session="${label}-$$"
 
-# Create a fresh workspace anchored to $dir. Its single root pane is the
-# left/agent pane.
+herdr --session "$session" server >/dev/null 2>&1 &
+sock=""
+for _ in $(seq 1 50); do
+  sock="$(session_socket "$session")"
+  [[ -n "$sock" ]] && break
+  sleep 0.1
+done
+[[ -n "$sock" ]] || { echo "agent-deck: session '$session' did not start" >&2; exit 1; }
+export HERDR_SOCKET_PATH="$sock"
+
+# Create the deck's workspace inside that session, then build the layout.
 create="$(herdr workspace create --cwd "$dir" --label "$label" --no-focus)"
 anchor="$(echo "$create" | jq -r '.result.root_pane.pane_id')"
 wsid="$(echo "$create" | jq -r '.result.workspace.workspace_id')"
 
 build_deck "$anchor" "$dir"
-
-# Focus the new workspace. The agent pane is already the tab's active pane
-# (every split used --no-focus), so no per-pane focus call is needed.
 herdr workspace focus "$wsid" >/dev/null 2>&1 || true
 
-echo "agent-deck: layout ready (agent | bash / files) in $label"
+echo "agent-deck: session '$session' ready (agent | bash / files) in $label"
 
-# Attach: turn this terminal into the herdr TUI on the new workspace.
-exec herdr
+# Attach this terminal to its own session.
+exec herdr --session "$session"

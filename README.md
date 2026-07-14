@@ -112,13 +112,29 @@ pane — the preset shapes the layout only, it is agent-agnostic.
 
 `agent-deck` adapts to where you run it:
 
-- **From a plain shell** it creates a fresh herdr workspace, builds the preset,
-  and attaches your terminal to it. To return to an existing workspace instead,
-  reattach with plain `herdr`.
+- **From a plain shell** it creates a **persistent, independent herdr session**
+  named `<label>-<pid>` (the label defaults to the folder basename, or pass one:
+  `agent-deck teamA`), builds the preset inside it, and attaches your terminal.
+  Each terminal gets its own session, so two terminals — even in the same folder —
+  never share state; the `<pid>` suffix keeps names unique.
 - **Inside herdr**, open a new tab (`herdr tab create`) and run `agent-deck` in
   its empty pane: that pane becomes the `agent` pane and the tab turns into the
-  preset in place — no new workspace. The tab is renamed to the folder. It
-  refuses to run if the tab already has more than one pane.
+  preset in place, within the current session. The tab is renamed to the folder.
+  It refuses to run if the tab already has more than one pane.
+
+### Managing sessions
+
+Sessions are persistent: closing the terminal only detaches — the session (and
+its agents) keeps running until you stop it explicitly.
+
+```bash
+agent-deck session list           # sessions + the workspaces each one holds
+agent-deck session open <name>    # reattach a plain terminal to a session
+agent-deck session kill <name>... # stop and remove sessions
+```
+
+Run `session list` to see the names, then `session open <name>` to jump back
+into one. (`session open` must be run from a plain shell, not nested in herdr.)
 
 ## Conventions
 
