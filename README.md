@@ -14,7 +14,7 @@ One directory per tool block:
 - `oh-my-posh/` — `probua.minimal.omp.json` prompt theme
 - `eza/` — `theme.yml` (colors for the `ls`/`ll`/`la`/`tree` aliases)
 - `shell/` — `bashrc`, sourced from `~/.bashrc` (prompt init + eza aliases)
-- `bin/` — `wsl-ubuntu-setup` (symlink installer), `desk` (herdr layout preset)
+- `bin/` — `wsl-ubuntu-setup` (symlink installer), `agent-deck` (herdr layout launcher)
 
 ## Setup (from scratch)
 
@@ -74,26 +74,30 @@ exec bash        # or: source ~/.bashrc, or just open a new terminal
 `~/.bashrc` is only read at shell startup, so nothing changes in the shell you
 ran step 4 in. After the reload the Oh My Posh prompt and the eza aliases/colors
 (white folders) are active, and `.../dotfiles/bin` is on your `PATH` — so from
-now on you can run `wsl-ubuntu-setup` (and `desk`) from any directory by name.
+now on you can run `wsl-ubuntu-setup` (and `agent-deck`) from any directory by name.
 
 ## Layout preset
 
-Inside herdr, run:
+From a plain shell, `cd` into a project folder and run:
 
-    desk
+    agent-deck
 
-Collapses the current tab to a single pane and builds the preset:
+It creates a fresh herdr workspace anchored to that folder, builds the preset,
+and attaches your terminal to it:
 
     +----------------+--------+
     |                |  bash  |   top-right 40%
-    |  agent  (70%)  +--------+
-    |                |  broot |   bottom-right 60%
+    |  agent  (60%)  +--------+
+    |                | files  |   bottom-right 60% (broot)
     +----------------+--------+
-       left 70%        right 30%
+       left 60%        right 40%
 
-broot launches automatically in the bottom-right. Re-run `desk` any time to reset
-the layout. Launch your AI agent (e.g. `claude`) yourself in the left pane — the
-preset shapes the layout only, it is agent-agnostic.
+All three panes open in the folder you launched from, so the agent shell, the
+bash shell, and the broot tree see only that directory. broot launches
+automatically in the bottom-right. Each run creates a new workspace; to return
+to an existing one, reattach with plain `herdr` instead. Launch your AI agent
+(e.g. `claude`) yourself in the left pane — the preset shapes the layout only,
+it is agent-agnostic.
 
 ## Conventions
 

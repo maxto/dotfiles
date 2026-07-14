@@ -1,15 +1,15 @@
 #!/usr/bin/env bash
-# Launch herdr with the "desk" 3-pane layout, anchored to the current dir.
+# Launch herdr with the "agent-deck" 3-pane layout, anchored to the current dir.
 #
 # Run from a plain WSL2 shell inside a project folder:
 #   left 60% = agent (plain shell) | right 40%: top 40% = bash, bottom 60% = files (br)
 # All three panes open in $PWD, so agent, bash, and the broot tree see only
 # that folder. Creates a fresh herdr workspace and attaches the terminal to it.
-# Usage: desk   (no arguments)
+# Usage: agent-deck   (no arguments)
 set -euo pipefail
 
-command -v jq    >/dev/null || { echo "desk: jq is required"    >&2; exit 1; }
-command -v herdr >/dev/null || { echo "desk: herdr is required" >&2; exit 1; }
+command -v jq    >/dev/null || { echo "agent-deck: jq is required"    >&2; exit 1; }
+command -v herdr >/dev/null || { echo "agent-deck: herdr is required" >&2; exit 1; }
 
 # 1. Ensure the herdr server is running. Normally it is (persistent session);
 #    on a cold boot start it headless and wait for the socket to answer.
@@ -19,7 +19,7 @@ if ! herdr status server >/dev/null 2>&1; then
     herdr status server >/dev/null 2>&1 && break
     sleep 0.1
   done
-  herdr status server >/dev/null 2>&1 || { echo "desk: herdr server did not start" >&2; exit 1; }
+  herdr status server >/dev/null 2>&1 || { echo "agent-deck: herdr server did not start" >&2; exit 1; }
 fi
 
 # 2. Anchor dir: all panes open here.
@@ -50,7 +50,7 @@ herdr pane rename "$bottom" files >/dev/null
 #    (every split used --no-focus), so no per-pane focus call is needed.
 herdr workspace focus "$wsid" >/dev/null 2>&1 || true
 
-echo "desk: layout ready (agent | bash / files) in $label"
+echo "agent-deck: layout ready (agent | bash / files) in $label"
 
 # 9. Attach: turn this terminal into the herdr TUI on the new workspace.
 #    Skip when already inside herdr (guard) — the terminal is already attached.
