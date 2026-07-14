@@ -74,6 +74,14 @@ bin/wsl-ubuntu-setup
 It is idempotent and non-destructive (existing files are backed up to
 `<name>.bak`), so re-run it any time. See the README for exactly what it links.
 
+The installer only wires the files into place — `~/.bashrc` reads them at shell
+startup, so nothing changes in the shell you ran it in. Open a **new terminal**
+(or reload the current one) for the prompt and eza aliases/colors to take effect:
+
+```bash
+exec bash    # or: source ~/.bashrc, or simply open a new terminal
+```
+
 ## 5. Verification
 
 ```bash
