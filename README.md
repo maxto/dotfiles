@@ -76,6 +76,20 @@ ran step 4 in. After the reload the Oh My Posh prompt and the eza aliases/colors
 (white folders) are active, and `.../dotfiles/bin` is on your `PATH` — so from
 now on you can run `wsl-ubuntu-setup` (and `agent-deck`) from any directory by name.
 
+## Keeping tools updated
+
+All the tools installed in step 2 come from Homebrew, so one command updates
+them:
+
+```bash
+brew update && brew upgrade && brew cleanup
+```
+
+`brew outdated` previews what would change. After upgrading **herdr** restart
+its persistent server so the running session picks up the new binary
+(`herdr` runs a background server — kill it and relaunch, or reboot the WSL
+session). `oh-my-posh` can also self-update in place with `oh-my-posh upgrade`.
+
 ## Layout preset
 
 `cd` into a project folder and run:
