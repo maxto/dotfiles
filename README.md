@@ -136,11 +136,6 @@ agent-deck session kill <name>... # stop and remove sessions
 Run `session list` to see the names, then `session open <name>` to jump back
 into one. (`session open` must be run from a plain shell, not nested in herdr.)
 
-## Conventions
-
-Code, config, filenames, comments and docs are in English. Short names, no
-unnecessary complexity.
-
 ## Scope
 
 The repo manages the **WSL2 side** (configs + scripts). The Windows side —
