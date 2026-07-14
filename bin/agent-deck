@@ -20,8 +20,9 @@
 #     (the pane you run it in becomes "agent"), within the current session.
 set -euo pipefail
 
-command -v jq    >/dev/null || { echo "agent-deck: jq is required"    >&2; exit 1; }
-command -v herdr >/dev/null || { echo "agent-deck: herdr is required" >&2; exit 1; }
+command -v jq     >/dev/null || { echo "agent-deck: jq is required"     >&2; exit 1; }
+command -v herdr  >/dev/null || { echo "agent-deck: herdr is required"  >&2; exit 1; }
+command -v setsid >/dev/null || { echo "agent-deck: setsid is required" >&2; exit 1; }
 
 # build_deck <anchor_pane> <dir>: split the anchor into the agent|bash/files
 # layout, launch broot in the files pane, and label the three panes.
@@ -121,7 +122,10 @@ fi
 # uniqueness so two terminals never share a session (even in the same folder).
 session="${label}-$$"
 
-herdr --session "$session" server >/dev/null 2>&1 &
+# Start the session's server in its OWN session (setsid), so it becomes a
+# detached daemon that survives this terminal closing. Without setsid the
+# server inherits the terminal's session and dies on hangup with the client.
+setsid herdr --session "$session" server >/dev/null 2>&1 &
 sock=""
 for _ in $(seq 1 50); do
   sock="$(session_socket "$session")"
