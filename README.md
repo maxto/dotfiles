@@ -78,12 +78,11 @@ now on you can run `wsl-ubuntu-setup` (and `agent-deck`) from any directory by n
 
 ## Layout preset
 
-From a plain shell, `cd` into a project folder and run:
+`cd` into a project folder and run:
 
     agent-deck
 
-It creates a fresh herdr workspace anchored to that folder, builds the preset,
-and attaches your terminal to it:
+It builds this preset, with all three panes anchored to that folder:
 
     +----------------+--------+
     |                |  bash  |   top-right 40%
@@ -92,12 +91,20 @@ and attaches your terminal to it:
     +----------------+--------+
        left 60%        right 40%
 
-All three panes open in the folder you launched from, so the agent shell, the
-bash shell, and the broot tree see only that directory. broot launches
-automatically in the bottom-right. Each run creates a new workspace; to return
-to an existing one, reattach with plain `herdr` instead. Launch your AI agent
-(e.g. `claude`) yourself in the left pane — the preset shapes the layout only,
-it is agent-agnostic.
+The panes see only the directory you launched from, so the agent shell, the
+bash shell, and the broot tree stay scoped to it. broot launches automatically
+in the bottom-right. Launch your AI agent (e.g. `claude`) yourself in the left
+pane — the preset shapes the layout only, it is agent-agnostic.
+
+`agent-deck` adapts to where you run it:
+
+- **From a plain shell** it creates a fresh herdr workspace, builds the preset,
+  and attaches your terminal to it. To return to an existing workspace instead,
+  reattach with plain `herdr`.
+- **Inside herdr**, open a new tab (`herdr tab create`) and run `agent-deck` in
+  its empty pane: that pane becomes the `agent` pane and the tab turns into the
+  preset in place — no new workspace. The tab is renamed to the folder. It
+  refuses to run if the tab already has more than one pane.
 
 ## Conventions
 
