@@ -1,18 +1,63 @@
 #!/usr/bin/env bash
-# Launch herdr with the "agent-deck" 3-pane layout, anchored to the current dir.
+# Launch the "agent-deck" 3-pane layout, anchored to the current dir.
 #
-# Run from a plain WSL2 shell inside a project folder:
+# Run from a project folder:
 #   left 60% = agent (plain shell) | right 40%: top 40% = bash, bottom 60% = files (br)
 # All three panes open in $PWD, so agent, bash, and the broot tree see only
-# that folder. Creates a fresh herdr workspace and attaches the terminal to it.
+# that folder.
+#
+# Context-aware:
+#   - Outside herdr: creates a fresh herdr workspace and attaches the terminal.
+#   - Inside herdr (HERDR_ENV=1): turns the CURRENT empty tab into the deck.
+#     The pane you run it in becomes the "agent" pane; bash + files are split off.
 # Usage: agent-deck   (no arguments)
 set -euo pipefail
 
 command -v jq    >/dev/null || { echo "agent-deck: jq is required"    >&2; exit 1; }
 command -v herdr >/dev/null || { echo "agent-deck: herdr is required" >&2; exit 1; }
 
-# 1. Ensure the herdr server is running. Normally it is (persistent session);
-#    on a cold boot start it headless and wait for the socket to answer.
+# build_deck <anchor_pane> <dir>: split the anchor into the agent|bash/files
+# layout, launch broot in the files pane, and label the three panes.
+build_deck() {
+  local anchor="$1" dir="$2" right bottom
+
+  # Right split: agent keeps 60%, new right pane = 40% (bash).
+  right="$(herdr pane split "$anchor" --direction right --ratio 0.60 --cwd "$dir" --no-focus | jq -r '.result.pane.pane_id')"
+
+  # Down split of the right pane: bash keeps 40%, new bottom = 60% (files).
+  bottom="$(herdr pane split "$right" --direction down --ratio 0.40 --cwd "$dir" --no-focus | jq -r '.result.pane.pane_id')"
+
+  # Launch broot (via the `br` launcher) in the bottom-right pane, rooted at $dir.
+  herdr pane run "$bottom" "br \"$dir\"" >/dev/null
+
+  # Label the panes.
+  herdr pane rename "$anchor" agent >/dev/null
+  herdr pane rename "$right"  bash  >/dev/null
+  herdr pane rename "$bottom" files >/dev/null
+}
+
+dir="$PWD"
+label="$(basename "$dir")"
+
+# --- Inside herdr: build the deck in the current tab -------------------------
+if [[ "${HERDR_ENV:-}" == "1" ]]; then
+  # Guard: only build in place when the current tab is a single empty pane.
+  panes="$(herdr pane list | jq --arg t "$HERDR_TAB_ID" '[.result.panes[] | select(.tab_id == $t)] | length')"
+  if [[ "$panes" != "1" ]]; then
+    echo "agent-deck: questo tab ha già più pane; apri un tab nuovo (herdr tab create) e rilancia" >&2
+    exit 1
+  fi
+
+  build_deck "$HERDR_PANE_ID" "$dir"
+  herdr tab rename "$HERDR_TAB_ID" "$label" >/dev/null
+
+  echo "agent-deck: layout ready (agent | bash / files) in $label"
+  exit 0
+fi
+
+# --- Outside herdr: create a fresh workspace and attach ----------------------
+# Ensure the herdr server is running. Normally it is (persistent session);
+# on a cold boot start it headless and wait for the socket to answer.
 if ! herdr status server >/dev/null 2>&1; then
   herdr server >/dev/null 2>&1 &
   for _ in $(seq 1 50); do
@@ -22,38 +67,19 @@ if ! herdr status server >/dev/null 2>&1; then
   herdr status server >/dev/null 2>&1 || { echo "agent-deck: herdr server did not start" >&2; exit 1; }
 fi
 
-# 2. Anchor dir: all panes open here.
-dir="$PWD"
-label="$(basename "$dir")"
-
-# 3. Create a fresh workspace anchored to $dir. Its single root pane is the
-#    left/agent pane.
+# Create a fresh workspace anchored to $dir. Its single root pane is the
+# left/agent pane.
 create="$(herdr workspace create --cwd "$dir" --label "$label" --no-focus)"
 anchor="$(echo "$create" | jq -r '.result.root_pane.pane_id')"
 wsid="$(echo "$create" | jq -r '.result.workspace.workspace_id')"
 
-# 4. Right split: agent keeps 60%, new right pane = 40% (bash).
-right="$(herdr pane split "$anchor" --direction right --ratio 0.60 --cwd "$dir" --no-focus | jq -r '.result.pane.pane_id')"
+build_deck "$anchor" "$dir"
 
-# 5. Down split of the right pane: bash keeps 40%, new bottom = 60% (files).
-bottom="$(herdr pane split "$right" --direction down --ratio 0.40 --cwd "$dir" --no-focus | jq -r '.result.pane.pane_id')"
-
-# 6. Launch broot (via the `br` launcher) in the bottom-right pane, rooted at $dir.
-herdr pane run "$bottom" "br \"$dir\"" >/dev/null
-
-# 7. Label the panes.
-herdr pane rename "$anchor" agent >/dev/null
-herdr pane rename "$right"  bash  >/dev/null
-herdr pane rename "$bottom" files >/dev/null
-
-# 8. Focus the new workspace. The agent pane is already the tab's active pane
-#    (every split used --no-focus), so no per-pane focus call is needed.
+# Focus the new workspace. The agent pane is already the tab's active pane
+# (every split used --no-focus), so no per-pane focus call is needed.
 herdr workspace focus "$wsid" >/dev/null 2>&1 || true
 
 echo "agent-deck: layout ready (agent | bash / files) in $label"
 
-# 9. Attach: turn this terminal into the herdr TUI on the new workspace.
-#    Skip when already inside herdr (guard) — the terminal is already attached.
-if [[ "${HERDR_ENV:-}" != "1" ]]; then
-  exec herdr
-fi
+# Attach: turn this terminal into the herdr TUI on the new workspace.
+exec herdr
