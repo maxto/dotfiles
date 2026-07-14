@@ -11,11 +11,13 @@
 #   agent-deck session kill <name>...   Stop and remove one or more sessions.
 #
 # Launch behavior is context-aware:
-#   - Outside herdr: creates a persistent, independent herdr session named
-#     "<name>-<pid>" (name defaults to the folder basename), builds the deck
-#     inside it, and attaches the terminal. The session survives closing the
-#     terminal — reattach with `herdr --session <name>-<pid>`, or stop it with
-#     `agent-deck session kill`.
+#   - Outside herdr: attaches to a persistent herdr session named after the
+#     folder (or the given name). If a session with that name already exists it
+#     REATTACHES to it; otherwise it creates the session, builds the deck, and
+#     attaches. So `agent-deck teamA` always returns you to teamA. The session
+#     survives closing the terminal — reopen it with the same command or
+#     `agent-deck session open <name>`, or stop it with `agent-deck session kill`.
+#     Use distinct names (or folders) for independent sessions.
 #   - Inside herdr (HERDR_ENV=1): turns the CURRENT empty tab into the deck
 #     (the pane you run it in becomes "agent"), within the current session.
 set -euo pipefail
@@ -117,12 +119,17 @@ if [[ "${HERDR_ENV:-}" == "1" ]]; then
   exit 0
 fi
 
-# --- Outside herdr: create a persistent, independent named session -----------
-# Name is "<label>-<pid>": the label stays human-readable, the pid guarantees
-# uniqueness so two terminals never share a session (even in the same folder).
-session="${label}-$$"
+# --- Outside herdr: attach to (or create) a persistent named session ---------
+# The name is just the label. If a session with that name already exists we
+# reattach to it instead of duplicating — so re-running returns you to it.
+session="$label"
 
-# Start the session's server in its OWN session (setsid), so it becomes a
+if herdr session list --json | jq -e --arg n "$session" '.sessions[] | select(.name == $n)' >/dev/null; then
+  echo "agent-deck: reattaching to existing session '$session'"
+  exec herdr --session "$session"
+fi
+
+# New session: start its server in its OWN session (setsid), so it becomes a
 # detached daemon that survives this terminal closing. Without setsid the
 # server inherits the terminal's session and dies on hangup with the client.
 setsid herdr --session "$session" server >/dev/null 2>&1 &
@@ -143,7 +150,7 @@ wsid="$(echo "$create" | jq -r '.result.workspace.workspace_id')"
 build_deck "$anchor" "$dir"
 herdr workspace focus "$wsid" >/dev/null 2>&1 || true
 
-echo "agent-deck: session '$session' ready (agent | bash / files) in $label"
+echo "agent-deck: session '$session' ready (agent | bash / files)"
 
 # Attach this terminal to its own session.
 exec herdr --session "$session"

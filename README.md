@@ -112,11 +112,11 @@ pane — the preset shapes the layout only, it is agent-agnostic.
 
 `agent-deck` adapts to where you run it:
 
-- **From a plain shell** it creates a **persistent, independent herdr session**
-  named `<label>-<pid>` (the label defaults to the folder basename, or pass one:
-  `agent-deck teamA`), builds the preset inside it, and attaches your terminal.
-  Each terminal gets its own session, so two terminals — even in the same folder —
-  never share state; the `<pid>` suffix keeps names unique.
+- **From a plain shell** it attaches to a **persistent herdr session** named
+  after the folder (or a name you pass: `agent-deck teamA`). If that session
+  already exists it **reattaches**; otherwise it creates the session, builds the
+  preset inside it, and attaches. So `agent-deck teamA` always returns you to
+  teamA — use distinct names (or folders) for independent sessions.
 - **Inside herdr**, open a new tab (`herdr tab create`) and run `agent-deck` in
   its empty pane: that pane becomes the `agent` pane and the tab turns into the
   preset in place, within the current session. The tab is renamed to the folder.
