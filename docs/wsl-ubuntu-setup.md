@@ -101,7 +101,6 @@ micro       2.0.15
 jq          1.8.2
 oh-my-posh  29.24.0
 ```
-```
 
 Paths:
 
