@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Exercise bin/setup in a sandbox HOME. Does not affect the real system.
+# Exercise bin/wsl-ubuntu-setup in a sandbox HOME. Does not affect the real system.
 set -uo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
@@ -16,10 +16,10 @@ mkdir -p "$XDG_CONFIG_HOME/herdr"
 echo "OLD" > "$XDG_CONFIG_HOME/herdr/config.toml"
 echo "# base bashrc" > "$HOME/.bashrc"
 
-bash "$REPO/bin/setup" >/dev/null
+bash "$REPO/bin/wsl-ubuntu-setup" >/dev/null
 
-check "bin/setup is executable" \
-  '[[ -x "$REPO/bin/setup" ]]'
+check "bin/wsl-ubuntu-setup is executable" \
+  '[[ -x "$REPO/bin/wsl-ubuntu-setup" ]]'
 
 check "herdr config linked into repo" \
   '[[ -L "$XDG_CONFIG_HOME/herdr/config.toml" && "$(readlink -f "$XDG_CONFIG_HOME/herdr/config.toml")" == "$REPO/herdr/config.toml" ]]'
@@ -43,7 +43,7 @@ check "existing bashrc content preserved" \
   'grep -qxF "# base bashrc" "$HOME/.bashrc"'
 
 # Second run: must not duplicate the source line, must not re-backup.
-bash "$REPO/bin/setup" >/dev/null
+bash "$REPO/bin/wsl-ubuntu-setup" >/dev/null
 
 check "source line present exactly once after rerun" \
   '[[ "$(grep -cxF "source $REPO/shell/bashrc" "$HOME/.bashrc")" -eq 1 ]]'
@@ -61,7 +61,7 @@ STALE="$XDG_CONFIG_HOME/broot/conf.toml"
 rm -f "$STALE"
 ln -s /nonexistent "$STALE"
 echo "PRIOR" > "$STALE.bak"
-bash "$REPO/bin/setup" >/dev/null
+bash "$REPO/bin/wsl-ubuntu-setup" >/dev/null
 
 check "prior .bak preserved (not clobbered)" \
   '[[ "$(cat "$STALE.bak")" == "PRIOR" ]]'
@@ -74,7 +74,7 @@ STALE2="$XDG_CONFIG_HOME/micro/settings.json"
 rm -f "$STALE2" "$STALE2.bak"
 ln -s /nonexistent-a "$STALE2.bak"   # prior backup is itself a dangling symlink
 ln -s /nonexistent-b "$STALE2"       # stale target -> triggers the backup branch
-bash "$REPO/bin/setup" >/dev/null
+bash "$REPO/bin/wsl-ubuntu-setup" >/dev/null
 
 check "dangling .bak not clobbered" \
   '[[ "$(readlink "$STALE2.bak")" == "/nonexistent-a" ]]'

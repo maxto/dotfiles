@@ -3,17 +3,20 @@
 DOTFILES_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 export PATH="$DOTFILES_DIR/bin:$PATH"
 
-# Oh My Posh prompt (config symlinked into place by bin/setup).
+# Oh My Posh prompt (config symlinked into place by bin/wsl-ubuntu-setup).
 # Needs the oh-my-posh binary on PATH and a Nerd Font in the terminal —
 # see docs/win-term-setup.md.
 if command -v oh-my-posh >/dev/null 2>&1; then
   eval "$(oh-my-posh init bash --config "${XDG_CONFIG_HOME:-$HOME/.config}/oh-my-posh/probua.minimal.omp.json")"
 fi
 
-# eza — modern ls (theme symlinked into place by bin/setup).
+# eza — modern ls (theme symlinked into place by bin/wsl-ubuntu-setup).
+# Clear LS_COLORS for eza only: the ambient LS_COLORS (di=01;34) would otherwise
+# override theme.yml (e.g. force blue folders), so blank it and let the theme own
+# eza's colors. Plain ls/other tools keep their LS_COLORS.
 if command -v eza >/dev/null 2>&1; then
-  alias ls='eza --icons --group-directories-first'
-  alias ll='eza -lah --icons --group-directories-first'
-  alias la='eza -a --icons --group-directories-first'
-  alias tree='eza --tree --icons --group-directories-first'
+  alias ls='LS_COLORS= eza --icons --group-directories-first'
+  alias ll='LS_COLORS= eza -lah --icons --group-directories-first'
+  alias la='LS_COLORS= eza -a --icons --group-directories-first'
+  alias tree='LS_COLORS= eza --tree --icons --group-directories-first'
 fi

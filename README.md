@@ -14,12 +14,16 @@ One directory per tool block:
 - `oh-my-posh/` — `probua.minimal.omp.json` prompt theme
 - `eza/` — `theme.yml` (colors for the `ls`/`ll`/`la`/`tree` aliases)
 - `shell/` — `bashrc`, sourced from `~/.bashrc` (prompt init + eza aliases)
-- `bin/` — `setup` (symlink installer), `desk` (herdr layout preset)
+- `bin/` — `wsl-ubuntu-setup` (symlink installer), `desk` (herdr layout preset)
 
 ## Install
 
+First install the WSL2 tools (Homebrew, herdr, broot, eza, micro, jq,
+oh-my-posh) — see [`docs/wsl-ubuntu-setup.md`](docs/wsl-ubuntu-setup.md). Then
+wire up the configs:
+
 ```bash
-bin/setup
+bin/wsl-ubuntu-setup
 ```
 
 Creates symlinks from `~/.config/*` into this repo and adds a single
