@@ -1,47 +1,59 @@
 #!/usr/bin/env bash
-# Build the herdr "desk" layout preset in a tab:
-#   left 70% = agent (plain shell) | right 30%: top 40% = bash, bottom 60% = broot
-# Idempotent: collapses the target tab to a single pane, then rebuilds
-# (re-run = reset). Usage: desk [PANE_ID]  (default: the focused pane).
+# Launch herdr with the "desk" 3-pane layout, anchored to the current dir.
+#
+# Run from a plain WSL2 shell inside a project folder:
+#   left 60% = agent (plain shell) | right 40%: top 40% = bash, bottom 60% = files (br)
+# All three panes open in $PWD, so agent, bash, and the broot tree see only
+# that folder. Creates a fresh herdr workspace and attaches the terminal to it.
+# Usage: desk   (no arguments)
 set -euo pipefail
 
 command -v jq    >/dev/null || { echo "desk: jq is required"    >&2; exit 1; }
 command -v herdr >/dev/null || { echo "desk: herdr is required" >&2; exit 1; }
 
-# 1. Anchor pane (becomes left/agent) and its tab.
-if [[ $# -ge 1 ]]; then
-  anchor="$1"
-else
-  anchor="$(herdr pane current | jq -r '.result.pane.pane_id')"
+# 1. Ensure the herdr server is running. Normally it is (persistent session);
+#    on a cold boot start it headless and wait for the socket to answer.
+if ! herdr status server >/dev/null 2>&1; then
+  herdr server >/dev/null 2>&1 &
+  for _ in $(seq 1 50); do
+    herdr status server >/dev/null 2>&1 && break
+    sleep 0.1
+  done
+  herdr status server >/dev/null 2>&1 || { echo "desk: herdr server did not start" >&2; exit 1; }
 fi
-info="$(herdr pane get "$anchor")"
-wsid="$(echo "$info" | jq -r '.result.pane.workspace_id')"
-tabid="$(echo "$info" | jq -r '.result.pane.tab_id')"
 
-# 2. Collapse the tab: close every pane in it except the anchor. The pane list is
-#    captured before any close, so closing during iteration is safe.
-herdr pane list --workspace "$wsid" \
-  | jq -r --arg t "$tabid" '.result.panes[] | select(.tab_id==$t) | .pane_id' \
-  | while read -r p; do
-      [[ -n "$p" && "$p" != "$anchor" ]] && herdr pane close "$p" || true
-    done
+# 2. Anchor dir: all panes open here.
+dir="$PWD"
+label="$(basename "$dir")"
 
-# 3. Right split: anchor keeps 70%, new right pane = 30%.
-right="$(herdr pane split "$anchor" --direction right --ratio 0.70 --no-focus | jq -r '.result.pane.pane_id')"
+# 3. Create a fresh workspace anchored to $dir. Its single root pane is the
+#    left/agent pane.
+create="$(herdr workspace create --cwd "$dir" --label "$label" --no-focus)"
+anchor="$(echo "$create" | jq -r '.result.root_pane.pane_id')"
+wsid="$(echo "$create" | jq -r '.result.workspace.workspace_id')"
 
-# 4. Down split of the right pane: top (bash) keeps 40%, new bottom (broot) = 60%.
-bottom="$(herdr pane split "$right" --direction down --ratio 0.40 --no-focus | jq -r '.result.pane.pane_id')"
+# 4. Right split: agent keeps 60%, new right pane = 40% (bash).
+right="$(herdr pane split "$anchor" --direction right --ratio 0.60 --cwd "$dir" --no-focus | jq -r '.result.pane.pane_id')"
 
-# 5. Launch broot in the bottom-right pane.
-herdr pane run "$bottom" broot >/dev/null
+# 5. Down split of the right pane: bash keeps 40%, new bottom = 60% (files).
+bottom="$(herdr pane split "$right" --direction down --ratio 0.40 --cwd "$dir" --no-focus | jq -r '.result.pane.pane_id')"
 
-# 6. Label the panes.
+# 6. Launch broot (via the `br` launcher) in the bottom-right pane, rooted at $dir.
+herdr pane run "$bottom" "br \"$dir\"" >/dev/null
+
+# 7. Label the panes.
 herdr pane rename "$anchor" agent >/dev/null
 herdr pane rename "$right"  bash  >/dev/null
 herdr pane rename "$bottom" files >/dev/null
 
-# 7. Focus the agent (left) pane (the --no-focus splits already keep it focused;
-#    this makes the end state explicit).
-herdr pane focus --direction left --pane "$bottom" >/dev/null 2>&1 || true
+# 8. Focus the new workspace. The agent pane is already the tab's active pane
+#    (every split used --no-focus), so no per-pane focus call is needed.
+herdr workspace focus "$wsid" >/dev/null 2>&1 || true
 
-echo "desk: layout ready (agent | bash / files)"
+echo "desk: layout ready (agent | bash / files) in $label"
+
+# 9. Attach: turn this terminal into the herdr TUI on the new workspace.
+#    Skip when already inside herdr (guard) — the terminal is already attached.
+if [[ "${HERDR_ENV:-}" != "1" ]]; then
+  exec herdr
+fi
