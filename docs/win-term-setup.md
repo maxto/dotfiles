@@ -98,91 +98,113 @@ The intended look, distilled from the reference `settings.json`:
 
 ### Apply it
 
-1. In Windows Terminal: **Settings** (`Ctrl+,`) → gear icon → **Open JSON file**.
-2. **Back it up first**, in PowerShell 7:
+Run this in **PowerShell 7** (not Windows PowerShell 5.1 — it uses
+`System.Text.Json.Nodes`). It backs up your current `settings.json`, then
+**merges** the curated keys into it: existing profiles Windows Terminal
+auto-generated and any tweaks of your own are preserved, only the curated keys
+are added or updated. Windows Terminal hot-reloads on save.
 
-   ```powershell
-   $wt = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter "Microsoft.WindowsTerminal*" |
-         Select-Object -First 1
-   $settings = Join-Path $wt.FullName "LocalState\settings.json"
-   Copy-Item $settings "$settings.bak"     # restore point
-   $settings                                # prints the path you're editing
-   ```
+```powershell
+# Merge the curated Windows Terminal settings into your live settings.json.
+# Your current file is backed up first (rollback); existing profiles/tweaks kept.
 
-3. Merge the curated block below into that `settings.json`. Keep the existing
-   `profiles.list` entries Windows Terminal generated for you; only add the
-   Ubuntu overrides and the top-level/theme/keybinding keys. `settings.json` is
-   JSONC, so the `//` comments are fine to keep or delete.
+$wt = Get-ChildItem "$env:LOCALAPPDATA\Packages" -Filter "Microsoft.WindowsTerminal*" |
+      Select-Object -First 1
+$settings = Join-Path $wt.FullName "LocalState\settings.json"
 
-### Curated `settings.json`
+# 1. Backup for rollback — never clobber an existing pristine backup.
+$bak = "$settings.bak"
+if (Test-Path $bak) { $bak = "$settings.$(Get-Date -Format yyyyMMdd-HHmmss).bak" }
+Copy-Item $settings $bak
+Write-Host "Backup -> $bak"
 
-```jsonc
+# 2. Parse the live JSONC, tolerating the // comments and trailing commas WT writes.
+$o = [System.Text.Json.JsonDocumentOptions]::new()
+$o.CommentHandling = [System.Text.Json.JsonCommentHandling]::Skip
+$o.AllowTrailingCommas = $true
+$live = [System.Text.Json.Nodes.JsonNode]::Parse((Get-Content $settings -Raw), $null, $o)
+
+# 3. Curated settings to merge in (plain JSON; the rationale lives in this doc).
+#    Ubuntu's guid is deterministic for the WSL distro named "Ubuntu".
+$curated = [System.Text.Json.Nodes.JsonNode]::Parse(@'
 {
-    "firstWindowPreference": "defaultProfile",
-    // Deterministic guid for the WSL distro named "Ubuntu" — matches on any
-    // machine where that distro exists. Otherwise pick Ubuntu in the UI.
-    "defaultProfile": "{03794fdb-bf56-5b5d-8e08-0186c26a4ad5}",
-
-    "initialCols": 160,
-    "initialRows": 40,
-    "centerOnLaunch": true,
-    "alwaysShowTabs": true,
-    "showTabsInTitlebar": true,
-    "useAcrylicInTabRow": true,
-    "language": "en-GB",
-    "copyOnSelect": false,
-    "copyFormatting": "none",
-    "warning.confirmCloseAllTabs": false,
-
-    "theme": "SeamlessDark",
-    "themes": [
-        {
-            "name": "SeamlessDark",
-            "tab":    { "background": "#1E1E1EFF", "unfocusedBackground": "#1E1E1EFF", "iconStyle": "default", "showCloseButton": "hover" },
-            "tabRow": { "background": "#1E1E1EFF", "unfocusedBackground": "#1E1E1EFF" },
-            "window": { "applicationTheme": "dark", "useMica": false, "experimental.rainbowFrame": false }
-        }
-    ],
-
-    "profiles": {
-        "defaults": {
-            "colorScheme": "Dark+",
-            "font": { "face": "Hack Nerd Font Mono", "size": 11 },
-            "opacity": 100,
-            "useAcrylic": true
-        },
-        "list": [
-            {
-                // Ubuntu (WSL) — the working profile, kept opaque.
-                "guid": "{03794fdb-bf56-5b5d-8e08-0186c26a4ad5}",
-                "name": "Ubuntu",
-                "source": "Microsoft.WSL",
-                "colorScheme": "Dark+",
-                "opacity": 100,
-                "useAcrylic": false
-            }
-        ]
-    },
-
-    "actions": [
-        { "command": { "action": "copy", "singleLine": false }, "id": "User.copy" },
-        { "command": "paste", "id": "User.paste" },
-        { "command": "find", "id": "User.find" },
-        { "command": { "action": "splitPane", "split": "auto", "splitMode": "duplicate" }, "id": "User.splitPane" }
-    ],
-    "keybindings": [
-        { "id": "User.copy",      "keys": "ctrl+c" },
-        { "id": "User.paste",     "keys": "ctrl+v" },
-        { "id": "User.find",      "keys": "ctrl+shift+f" },
-        { "id": "User.splitPane", "keys": "alt+shift+d" }
-    ]
+  "firstWindowPreference": "defaultProfile",
+  "defaultProfile": "{03794fdb-bf56-5b5d-8e08-0186c26a4ad5}",
+  "initialCols": 160, "initialRows": 40, "centerOnLaunch": true,
+  "alwaysShowTabs": true, "showTabsInTitlebar": true,
+  "useAcrylicInTabRow": false, "language": "en-GB",
+  "copyOnSelect": false, "copyFormatting": "none",
+  "warning.confirmCloseAllTabs": false,
+  "theme": "SeamlessDark",
+  "themes": [ { "name": "SeamlessDark",
+    "tab":    { "background": "#1E1E1EFF", "unfocusedBackground": "#1E1E1EFF", "iconStyle": "default", "showCloseButton": "hover" },
+    "tabRow": { "background": "#1E1E1EFF", "unfocusedBackground": "#1E1E1EFF" },
+    "window": { "applicationTheme": "dark", "useMica": false, "experimental.rainbowFrame": false } } ],
+  "profiles": {
+    "defaults": { "colorScheme": "Dark+", "font": { "face": "Hack Nerd Font Mono", "size": 11 }, "opacity": 100, "useAcrylic": true },
+    "list": [ { "guid": "{03794fdb-bf56-5b5d-8e08-0186c26a4ad5}", "name": "Ubuntu", "source": "Microsoft.WSL", "colorScheme": "Dark+", "opacity": 100, "useAcrylic": false } ]
+  },
+  "actions": [
+    { "command": { "action": "copy", "singleLine": false }, "id": "User.copy" },
+    { "command": "paste", "id": "User.paste" },
+    { "command": "find", "id": "User.find" },
+    { "command": { "action": "splitPane", "split": "auto", "splitMode": "duplicate" }, "id": "User.splitPane" } ],
+  "keybindings": [
+    { "id": "User.copy", "keys": "ctrl+c" }, { "id": "User.paste", "keys": "ctrl+v" },
+    { "id": "User.find", "keys": "ctrl+shift+f" }, { "id": "User.splitPane", "keys": "alt+shift+d" } ]
 }
+'@)
+
+# 4. Deep-merge. Clone via re-parse so nodes detach from $curated (works on any PS7):
+#    objects recurse, arrays of objects upsert by id/guid/name, scalars overwrite.
+function Clone-Node($n) { [System.Text.Json.Nodes.JsonNode]::Parse($n.ToJsonString()) }
+function Merge-Obj($dst, $src) {
+  foreach ($p in @($src.AsObject())) {
+    $k = $p.Key; $sv = $p.Value; $dv = $dst[$k]
+    if ($sv -is [System.Text.Json.Nodes.JsonObject] -and $dv -is [System.Text.Json.Nodes.JsonObject]) { Merge-Obj $dv $sv }
+    elseif ($sv -is [System.Text.Json.Nodes.JsonArray] -and $dv -is [System.Text.Json.Nodes.JsonArray]) { Merge-Arr $dv $sv }
+    else { $dst[$k] = Clone-Node $sv }
+  }
+}
+# WT suffixes user action ids with a hash (User.copy.644BA8F2); match on the base
+# id so we update the existing binding instead of appending a duplicate.
+function BaseId($s) { return ("$s" -replace '\.[0-9A-Fa-f]{8}$', '') }
+function Merge-Arr($dst, $src) {
+  foreach ($item in @($src)) {
+    $key = @('id','guid','name') | Where-Object { $item -is [System.Text.Json.Nodes.JsonObject] -and $item[$_] } | Select-Object -First 1
+    $hit = -1
+    if ($key) {
+      $want = if ($key -eq 'id') { BaseId $item[$key] } else { "$($item[$key])" }
+      for ($i = 0; $i -lt $dst.Count; $i++) {
+        $have = if ($key -eq 'id') { BaseId $dst[$i][$key] } else { "$($dst[$i][$key])" }
+        if ($have -eq $want) { $hit = $i; break }
+      }
+    }
+    if ($hit -ge 0) { Merge-Obj $dst[$hit] $item } else { $dst.Add((Clone-Node $item)) }
+  }
+}
+Merge-Obj $live $curated
+
+# 5. Write back, indented, UTF-8 without BOM (WT hot-reloads).
+$wo = [System.Text.Json.JsonWriterOptions]::new(); $wo.Indented = $true
+$ms = [System.IO.MemoryStream]::new()
+$jw = [System.Text.Json.Utf8JsonWriter]::new($ms, $wo)
+$live.WriteTo($jw); $jw.Flush(); $jw.Dispose()
+[System.IO.File]::WriteAllBytes($settings, $ms.ToArray())
+Write-Host "Merged. Rollback: Copy-Item '$bak' '$settings'"
 ```
 
-Machine-specific noise from the original file — GUIDs of auto-discovered
-profiles, miniconda / VS 2022 profiles, the absolute icon path, and two unused
-duplicate color schemes — is intentionally left out; Windows Terminal
-regenerates its auto profiles on its own.
+Notes:
+
+- **Rollback**: the script prints a `Copy-Item` line that restores the backup.
+- The merge rewrites the file as plain JSON, so any `//` comments you had in
+  `settings.json` are dropped — the values are kept.
+- Arrays merge by key (`profiles.list` by `guid`, `actions` / `keybindings` by
+  `id` — ignoring the hash suffix WT appends, `themes` by `name`), so your
+  existing entries are updated in place rather than duplicated.
+- Everything else in your `settings.json` is left untouched — the merge only
+  writes the curated keys, and Windows Terminal keeps managing its
+  auto-generated profiles on its own.
 
 ## 5. PowerShell 7 prompt — Oh My Posh + Terminal-Icons
 
