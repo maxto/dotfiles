@@ -80,13 +80,28 @@ cmd_session_open() {
 }
 
 # cmd_session_kill <name>...: stop and remove the given sessions entirely, so
-# they no longer linger in `session list` as stopped.
+# they no longer linger in `session list` as stopped. herdr's built-in "default"
+# session cannot be deleted, so we refuse it up front. Note herdr exits 0 even on
+# failure and reports the error as JSON on stdout, so we parse that ourselves.
 cmd_session_kill() {
   [[ $# -gt 0 ]] || { echo "agent-deck: 'session kill' richiede almeno un nome" >&2; exit 1; }
+  local rc=0
   for name in "$@"; do
+    if [[ "$name" == "default" ]]; then
+      echo "agent-deck: la sessione 'default' è interna a herdr e non può essere rimossa" >&2
+      rc=1
+      continue
+    fi
     herdr session stop "$name" >/dev/null 2>&1 || true
-    herdr session delete "$name"
+    local out err
+    out="$(herdr session delete "$name" 2>&1)"
+    err="$(echo "$out" | jq -r 'if type == "object" and has("error") then .error.message else empty end' 2>/dev/null || true)"
+    if [[ -n "$err" ]]; then
+      echo "agent-deck: impossibile rimuovere '$name': $err" >&2
+      rc=1
+    fi
   done
+  return "$rc"
 }
 
 # --- Subcommand dispatch -----------------------------------------------------
