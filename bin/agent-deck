@@ -52,11 +52,13 @@ session_socket() {
     | jq -r --arg n "$1" '.sessions[] | select(.name == $n and .running == true) | .socket_path'
 }
 
-# cmd_session_list: table of every session and the workspaces it currently holds.
+# cmd_session_list: table of every session and the workspaces it currently
+# holds. herdr's built-in "default" session is hidden: agent-deck never uses
+# it, so it would only show up as a stale "false" row.
 cmd_session_list() {
   printf '%-24s %-8s %s\n' SESSION RUNNING WORKSPACES
   herdr session list --json \
-    | jq -r '.sessions[] | [.name, (.running | tostring), .socket_path] | @tsv' \
+    | jq -r '.sessions[] | select(.name != "default") | [.name, (.running | tostring), .socket_path] | @tsv' \
     | while IFS=$'\t' read -r name running sock; do
         ws=""
         if [[ "$running" == "true" && -S "$sock" ]]; then
