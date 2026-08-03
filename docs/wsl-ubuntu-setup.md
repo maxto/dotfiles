@@ -43,11 +43,11 @@ What each is and why it is here:
 
 | Tool | Role in this environment |
 |---|---|
-| **herdr** | terminal multiplexer hosting the `agent-deck` layout (agent / bash / broot panes) |
-| **broot** | file-tree navigator (bottom-right pane of `agent-deck`) |
+| **herdr** | terminal multiplexer hosting the shell and AI-agent panes |
+| **broot** | file-tree navigator (`br`) |
 | **micro** | terminal text editor (repo ships its `settings.json` + `bindings.json`) |
 | **eza** | modern `ls`; drives the `ls` / `ll` / `la` / `tree` aliases and the color theme |
-| **jq** | JSON processor; required by `bin/agent-deck` |
+| **jq** | JSON processor; reads the `--json` output of herdr's CLI |
 | **oh-my-posh** | prompt theme engine (`probua.minimal`) for the bash prompt |
 
 The oh-my-posh prompt also needs a **Nerd Font**, but that is a terminal setting

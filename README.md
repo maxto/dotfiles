@@ -14,7 +14,7 @@ One directory per tool block:
 - `oh-my-posh/` — `probua.minimal.omp.json` prompt theme
 - `eza/` — `theme.yml` (colors for the `ls`/`ll`/`la`/`tree` aliases)
 - `shell/` — `bashrc`, sourced from `~/.bashrc` (prompt init + eza aliases)
-- `bin/` — `wsl-ubuntu-setup` (symlink installer), `agent-deck` (herdr layout launcher)
+- `bin/` — `wsl-ubuntu-setup` (symlink installer)
 
 ## Setup (from scratch)
 
@@ -74,7 +74,7 @@ exec bash        # or: source ~/.bashrc, or just open a new terminal
 `~/.bashrc` is only read at shell startup, so nothing changes in the shell you
 ran step 4 in. After the reload the Oh My Posh prompt and the eza aliases/colors
 (white folders) are active, and `.../dotfiles/bin` is on your `PATH` — so from
-now on you can run `wsl-ubuntu-setup` (and `agent-deck`) from any directory by name.
+now on you can run `wsl-ubuntu-setup` from any directory by name.
 
 ## Keeping tools updated
 
@@ -90,51 +90,29 @@ its persistent server so the running session picks up the new binary
 (`herdr` runs a background server — kill it and relaunch, or reboot the WSL
 session). `oh-my-posh` can also self-update in place with `oh-my-posh upgrade`.
 
-## Layout preset
+## herdr sessions
 
-`cd` into a project folder and run:
-
-    agent-deck
-
-It builds this preset, with all three panes anchored to that folder:
-
-    +----------------+--------+
-    |                |  bash  |   top-right 40%
-    |  agent  (60%)  +--------+
-    |                | files  |   bottom-right 60% (broot)
-    +----------------+--------+
-       left 60%        right 40%
-
-The panes see only the directory you launched from, so the agent shell, the
-bash shell, and the broot tree stay scoped to it. broot launches automatically
-in the bottom-right. Launch your AI agent (e.g. `claude`) yourself in the left
-pane — the preset shapes the layout only, it is agent-agnostic.
-
-`agent-deck` adapts to where you run it:
-
-- **From a plain shell** it attaches to a **persistent herdr session** named
-  after the folder (or a name you pass: `agent-deck teamA`). If that session
-  already exists it **reattaches**; otherwise it creates the session, builds the
-  preset inside it, and attaches. So `agent-deck teamA` always returns you to
-  teamA — use distinct names (or folders) for independent sessions.
-- **Inside herdr**, open a new tab (`herdr tab create`) and run `agent-deck` in
-  its empty pane: that pane becomes the `agent` pane and the tab turns into the
-  preset in place, within the current session. The tab is renamed to the folder.
-  It refuses to run if the tab already has more than one pane.
-
-### Managing sessions
-
-Sessions are persistent: closing the terminal only detaches — the session (and
-its agents) keeps running until you stop it explicitly.
+`herdr` on its own opens the default persistent session. To keep a project's
+panes separate from everything else, name the session after it:
 
 ```bash
-agent-deck session list           # sessions + the workspaces each one holds
-agent-deck session open <name>    # reattach a plain terminal to a session
-agent-deck session kill <name>... # stop and remove sessions
+herdr --session dotfiles    # creates it if missing, attaches if it already exists
 ```
 
-Run `session list` to see the names, then `session open <name>` to jump back
-into one. (`session open` must be run from a plain shell, not nested in herdr.)
+Detaching (`prefix+q`, prefix being `ctrl+b`) leaves the session running: panes,
+shells, and agents keep working inside the herdr server, and the same command
+brings you back. Manage them with:
+
+```bash
+herdr session list             # every session and whether it is running
+herdr session attach <name>    # reattach from a plain shell
+herdr session stop <name>      # stop a running session
+herdr session delete <name>    # remove a stopped session
+```
+
+Inside a session the prefix is `ctrl+b`: `prefix+v` splits vertically,
+`prefix+minus` horizontally, `prefix+shift+n` opens a new workspace and
+`prefix+q` detaches. For a file tree in a pane, run `br` (broot).
 
 ## Scope
 
