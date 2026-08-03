@@ -14,6 +14,20 @@ fi
 # Clear LS_COLORS for eza only: the ambient LS_COLORS (di=01;34) would otherwise
 # override theme.yml (e.g. force blue folders), so blank it and let the theme own
 # eza's colors. Plain ls/other tools keep their LS_COLORS.
+# herdrh [name] — open, or reattach to, a herdr session for the project you are
+# in. The name defaults to the git repository's directory name so that any
+# subdirectory of a repo lands in the same session; outside a repo it falls back
+# to the current folder. Pass a name for a project spanning several repos.
+# herdr itself does create-or-attach, so re-running returns you to the session.
+# Run it from a plain shell: herdr refuses to launch nested inside a pane.
+if command -v herdr >/dev/null 2>&1; then
+  herdrh() {
+    local rpath
+    rpath="$(git rev-parse --show-toplevel 2>/dev/null)" || rpath="$PWD"
+    herdr --session "${1:-$(basename "$rpath")}"
+  }
+fi
+
 if command -v eza >/dev/null 2>&1; then
   alias ls='LS_COLORS= eza --icons --group-directories-first'
   alias ll='LS_COLORS= eza -lah --icons --group-directories-first'

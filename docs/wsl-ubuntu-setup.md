@@ -44,7 +44,7 @@ What each is and why it is here:
 | Tool | Role in this environment |
 |---|---|
 | **herdr** | terminal multiplexer hosting the shell and AI-agent panes |
-| **broot** | file-tree navigator (`br`) |
+| **broot** | file-tree navigator; run `broot --install` once to get the `br` shell wrapper |
 | **micro** | terminal text editor (repo ships its `settings.json` + `bindings.json`) |
 | **eza** | modern `ls`; drives the `ls` / `ll` / `la` / `tree` aliases and the color theme |
 | **jq** | JSON processor; reads the `--json` output of herdr's CLI |
