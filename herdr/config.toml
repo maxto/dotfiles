@@ -1,6 +1,9 @@
 onboarding = false
+
 [theme]
 name = "gruvbox"
 
 [ui]
 agent_panel_sort = "priority"
+pane_borders = "always"
+show_agent_labels_on_pane_borders = true
