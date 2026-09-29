@@ -206,7 +206,24 @@ Notes:
   writes the curated keys, and Windows Terminal keeps managing its
   auto-generated profiles on its own.
 
-## 5. PowerShell 7 prompt — Oh My Posh + Terminal-Icons
+## 5. VS Code font
+
+VS Code uses the same Hack Nerd Font, set in the **Windows-side** user settings
+— the WSL remote reuses them, so there is nothing to set inside WSL2. Open them
+with **Ctrl+Shift+P → Preferences: Open User Settings (JSON)** and set:
+
+```jsonc
+"editor.fontFamily": "'Hack Nerd Font Mono', Consolas, monospace",
+"editor.fontSize": 12,
+"terminal.integrated.fontFamily": "'Hack Nerd Font Mono', monospace",
+"terminal.integrated.fontSize": 13,
+```
+
+The **Mono** variant keeps Nerd Font glyphs one cell wide, so the Oh My Posh
+prompt stays aligned in the integrated terminal. VS Code applies the change on
+save.
+
+## 6. PowerShell 7 prompt — Oh My Posh + Terminal-Icons
 
 Create the profile if missing and open it:
 
@@ -245,7 +262,7 @@ Reload and test:
 Get-ChildItem        # icons should render
 ```
 
-## 6. Verification
+## 7. Verification
 
 ```powershell
 $PSVersionTable.PSVersion

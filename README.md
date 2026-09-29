@@ -22,8 +22,8 @@ Full rebuild on a new machine. Do the steps in order.
 
 ### 1. Windows side (manual)
 
-Windows Terminal, PowerShell 7, Hack Nerd Font, and the Windows Terminal
-`settings.json` live on Windows, not in this repo. Follow
+Windows Terminal, PowerShell 7, Hack Nerd Font, the Windows Terminal
+`settings.json` and the VS Code font live on Windows, not in this repo. Follow
 [`docs/win-term-setup.md`](docs/win-term-setup.md) by hand.
 
 ### 2. WSL2 tools
@@ -149,6 +149,6 @@ you are attached to.
 ## Scope
 
 The repo manages the **WSL2 side** (configs + scripts). The Windows side —
-Windows Terminal, PowerShell 7, Hack Nerd Font, Terminal-Icons — is documented
-but applied by hand; see
+Windows Terminal, PowerShell 7, Hack Nerd Font, Terminal-Icons, the VS Code
+font — is documented but applied by hand; see
 [`docs/win-term-setup.md`](docs/win-term-setup.md).
